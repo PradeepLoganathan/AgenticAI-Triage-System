@@ -36,5 +36,12 @@ public class TriageEndpoint {
             .invoke();
         return HttpResponses.ok(res);
     }
-}
 
+    @Get("/state")
+    public HttpResponse state(String triageId) {
+        var res = client.forWorkflow(triageId)
+                .method(TriageWorkflow::getState)
+                .invoke();
+        return HttpResponses.ok(res);
+    }
+}

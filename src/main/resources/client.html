@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentic Triage Demo</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 20px; }
+      input, textarea, button { font-size: 14px; padding: 6px; }
+      .row { margin: 8px 0; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      pre { background: #f6f8fa; padding: 8px; overflow: auto; }
+    </style>
+  </head>
+  <body>
+    <h1>Agentic Triage Demo</h1>
+    <div class="row">
+      <label>Triage ID: <input id="tid" value="demo-1" /></label>
+    </div>
+    <div class="row">
+      <label>Incident Summary:</label><br />
+      <textarea id="incident" rows="4" cols="80">Checkout 5xx errors spike after deploy, error rate > 5%.</textarea>
+    </div>
+    <div class="row">
+      <button id="start">Start</button>
+      <button id="refresh">Refresh</button>
+    </div>
+    <div class="grid">
+      <div>
+        <h3>Conversations</h3>
+        <pre id="convo"></pre>
+      </div>
+      <div>
+        <h3>State</h3>
+        <pre id="state"></pre>
+      </div>
+    </div>
+    <script>
+      async function start() {
+        const id = document.getElementById('tid').value.trim();
+        const incident = document.getElementById('incident').value;
+        const res = await fetch(`/triage/${encodeURIComponent(id)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ incident })
+        });
+        if (!res.ok) alert('Start failed');
+        await refresh();
+      }
+      async function refresh() {
+        const id = document.getElementById('tid').value.trim();
+        const [c, s] = await Promise.all([
+          fetch(`/triage/${encodeURIComponent(id)}`).then(r => r.json()),
+          fetch(`/triage/${encodeURIComponent(id)}/state`).then(r => r.json()),
+        ]);
+        document.getElementById('convo').textContent = JSON.stringify(c, null, 2);
+        document.getElementById('state').textContent = JSON.stringify(s, null, 2);
+      }
+      document.getElementById('start').onclick = start;
+      document.getElementById('refresh').onclick = refresh;
+    </script>
+  </body>
+  </html>
+
