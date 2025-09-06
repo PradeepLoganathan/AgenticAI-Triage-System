@@ -26,3 +26,6 @@ effective-pom.xml
 db.mv.db
 
 akka-context/
+
+notes.md
+DEMO_INSTRUCTIONS.md
