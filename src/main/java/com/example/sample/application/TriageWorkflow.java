@@ -6,6 +6,7 @@ import akka.javasdk.workflow.Workflow;
 import com.example.sample.domain.Conversation;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @ComponentId("triage-workflow")
@@ -79,6 +80,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 .asyncCall(StartTriage.class, cmd -> CompletableFuture.supplyAsync(() ->
                         componentClient
                                 .forAgent()
+                                .inSession(UUID.randomUUID().toString())
                                 .method(ClassifierAgent::classify)
                                 .invoke(new ClassifierAgent.Request(cmd.incident()))))
                 .andThen(String.class, json -> effects()
@@ -95,6 +97,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 .asyncCall(() -> CompletableFuture.supplyAsync(() ->
                         componentClient
                                 .forAgent()
+                                .inSession(UUID.randomUUID().toString())
                                 .method(EvidenceAgent::gather)
                                 .invoke(new EvidenceAgent.Request(extractService(currentState().classificationJson()),
                                         "errors:rate5m", "1h"))
@@ -116,6 +119,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                             "\nEvidence: logs+metrics collected";
                     return componentClient
                             .forAgent()
+                            .inSession(UUID.randomUUID().toString())
                             .method(TriageAgent::triage)
                             .invoke(new TriageAgent.Request(enriched));
                 }))
@@ -133,6 +137,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 .asyncCall(() -> CompletableFuture.supplyAsync(() ->
                         componentClient
                                 .forAgent()
+                                .inSession(UUID.randomUUID().toString())
                                 .method(RemediationAgent::remediate)
                                 .invoke(new RemediationAgent.Request(
                                         currentState().incident(),
@@ -154,6 +159,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 .asyncCall(() -> CompletableFuture.supplyAsync(() ->
                         componentClient
                                 .forAgent()
+                                .inSession(UUID.randomUUID().toString())
                                 .method(SummaryAgent::summarize)
                                 .invoke(new SummaryAgent.Request(
                                         currentState().incident(),

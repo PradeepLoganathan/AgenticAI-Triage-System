@@ -20,6 +20,7 @@ public class TriageAgentMcpTest extends TestKitSupport {
     public void mcpCall_returnsMockedResult() {
         String response = componentClient
             .forAgent()
+            .inSession(java.util.UUID.randomUUID().toString())
             .method(TriageAgent::mcpCall)
             .invoke("fetch_logs", "{\"service\":\"checkout\",\"lines\":10}");
 
@@ -28,4 +29,3 @@ public class TriageAgentMcpTest extends TestKitSupport {
         assertTrue(response.contains("mocked tool output"));
     }
 }
-

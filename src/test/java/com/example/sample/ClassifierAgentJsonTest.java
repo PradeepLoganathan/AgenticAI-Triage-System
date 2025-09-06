@@ -27,8 +27,9 @@ public class ClassifierAgentJsonTest extends TestKitSupport {
 
         String res = componentClient
                 .forAgent()
+                .inSession(java.util.UUID.randomUUID().toString())
                 .method(ClassifierAgent::classify)
-                .invoke(new ClassifierAgent.Request("Checkout 5xx spike after deploy"));
+                .invoke(new ClassifierAgent.Request("Checkout 5xx spike after deployment of new payments functionality"));
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(res);
@@ -38,4 +39,3 @@ public class ClassifierAgentJsonTest extends TestKitSupport {
         assertThat(severity).isIn("P1", "P2", "P3", "P4");
     }
 }
-

@@ -42,6 +42,7 @@ public class AgentsTest extends TestKitSupport {
 
         String res = componentClient
                 .forAgent()
+                .inSession(java.util.UUID.randomUUID().toString())
                 .method(ClassifierAgent::classify)
                 .invoke(new ClassifierAgent.Request("Checkout 5xx spike after deploy"));
 
@@ -53,6 +54,7 @@ public class AgentsTest extends TestKitSupport {
     public void evidence_gathers_from_mcp_mock() throws Exception {
         String res = componentClient
                 .forAgent()
+                .inSession(java.util.UUID.randomUUID().toString())
                 .method(EvidenceAgent::gather)
                 .invoke(new EvidenceAgent.Request("checkout", "errors:rate5m", "1h"));
 
@@ -72,6 +74,7 @@ public class AgentsTest extends TestKitSupport {
 
         String res = componentClient
                 .forAgent()
+                .inSession(java.util.UUID.randomUUID().toString())
                 .method(TriageAgent::triage)
                 .invoke(new TriageAgent.Request("Some enriched context"));
 
@@ -84,6 +87,7 @@ public class AgentsTest extends TestKitSupport {
         remediationModel.fixedResponse("Plan: 1) rollback 2) validate 3) communicate");
         String res = componentClient
                 .forAgent()
+                .inSession(java.util.UUID.randomUUID().toString())
                 .method(RemediationAgent::remediate)
                 .invoke(new RemediationAgent.Request("inc", "{}", "{}", "triage"));
         assertThat(res.toLowerCase()).contains("plan");
@@ -94,6 +98,7 @@ public class AgentsTest extends TestKitSupport {
         summaryModel.fixedResponse("Incident: short\nImpact: minor\nNext update: 30m");
         String res = componentClient
                 .forAgent()
+                .inSession(java.util.UUID.randomUUID().toString())
                 .method(SummaryAgent::summarize)
                 .invoke(new SummaryAgent.Request("inc", "{}", "triage", "remediation"));
         assertThat(res.toLowerCase()).contains("incident");
