@@ -43,7 +43,7 @@ flowchart LR
   EA -->|fetch_logs| MCP[(MCP Bridge)]
   EA -->|query_metrics| MCP
   WF -->|triage| TA[TriageAgent]
-  TA -->|mcp-call (optional)| MCP
+  TA -->|mcp-call| MCP
   WF -->|remediate| RA[RemediationAgent]
   WF -->|summarize| SA[SummaryAgent]
   WF -->|update| State[(TriageState)]
