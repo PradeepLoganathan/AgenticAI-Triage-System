@@ -1,4 +1,4 @@
-package com.example.sample.api;
+package com.example.sample.mock;
 
 import akka.http.javadsl.model.HttpResponse;
 import akka.javasdk.annotations.Acl;

@@ -12,6 +12,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import com.example.sample.domain.TriageState;
+
 
 @ComponentId("triage-workflow")
 public class TriageWorkflow extends Workflow<TriageState> {

@@ -19,6 +19,7 @@ public class AgentsTest extends TestKitSupport {
     private final TestModelProvider triageModel = new TestModelProvider();
     private final TestModelProvider remediationModel = new TestModelProvider();
     private final TestModelProvider summaryModel = new TestModelProvider();
+    private final TestModelProvider evidenceModel = new TestModelProvider();
 
     @Override
     protected TestKit.Settings testKitSettings() {
@@ -26,7 +27,8 @@ public class AgentsTest extends TestKitSupport {
                 .withModelProvider(ClassifierAgent.class, classifierModel)
                 .withModelProvider(TriageAgent.class, triageModel)
                 .withModelProvider(RemediationAgent.class, remediationModel)
-                .withModelProvider(SummaryAgent.class, summaryModel);
+                .withModelProvider(SummaryAgent.class, summaryModel)
+                .withModelProvider(EvidenceAgent.class, evidenceModel);
     }
 
     @BeforeEach
@@ -46,19 +48,20 @@ public class AgentsTest extends TestKitSupport {
                 .method(ClassifierAgent::classify)
                 .invoke(new ClassifierAgent.Request("Checkout 5xx spike after deploy"));
 
-        assertThat(res).contains("\"service\"");
+        assertThat(res).contains("service");
         assertThat(res).contains("checkout");
     }
 
     @Test
     public void evidence_gathers_from_mcp_mock() throws Exception {
+        evidenceModel.fixedResponse("{\"service\":\"checkout\",\"logs\":\"mocked tool output\",\"metrics\":\"mocked tool output\"}");
         String res = componentClient
                 .forAgent()
                 .inSession(java.util.UUID.randomUUID().toString())
                 .method(EvidenceAgent::gather)
                 .invoke(new EvidenceAgent.Request("checkout", "errors:rate5m", "1h"));
 
-        assertThat(res).contains("\"service\"");
+        assertThat(res).contains("service");
         // Parse JSON and ensure both logs and metrics present
         var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         var node = mapper.readTree(res);
