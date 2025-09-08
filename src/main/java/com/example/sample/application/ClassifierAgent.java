@@ -86,7 +86,7 @@ public class ClassifierAgent extends Agent {
                                 .withApiKey(System.getenv("OPENAI_API_KEY"))
                                 .withModelName("gpt-4o-mini")
                                 .withTemperature(0.2)
-                                .withMaxTokens(1200)
+                                .withMaxTokens(1500)
                 )
                 .memory(MemoryProvider.limitedWindow())
                 .tools(this)

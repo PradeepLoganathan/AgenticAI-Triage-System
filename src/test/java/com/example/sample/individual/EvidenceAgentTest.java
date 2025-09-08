@@ -1,5 +1,8 @@
 package com.example.sample.individual;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import akka.javasdk.testkit.TestKit;
 import akka.javasdk.testkit.TestKitSupport;
 import com.example.sample.application.EvidenceAgent;
@@ -14,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class EvidenceAgentTest extends TestKitSupport {
 
     private final TestModelProvider evidenceModel = new TestModelProvider();
+    private static final Logger log = LoggerFactory.getLogger(ClassifierAgentTest.class);
 
     @Override
     protected TestKit.Settings testKitSettings() {
@@ -40,7 +44,7 @@ public class EvidenceAgentTest extends TestKitSupport {
         // Verify JSON structure
         var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         var node = mapper.readTree(result);
-        
+        log.debug("EvidenceAgent response: {}", result);
         assertThat(node.has("service")).isTrue();
         assertThat(node.get("service").asText()).isEqualTo("payment-service");
         
@@ -73,7 +77,8 @@ public class EvidenceAgentTest extends TestKitSupport {
         var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         var node30m = mapper.readTree(result30m);
         var node1h = mapper.readTree(result1h);
-        
+        log.debug("EvidenceAgent 30m response: {}", result30m);
+        log.debug("EvidenceAgent 1h response: {}", result1h);
         assertThat(node30m.get("service").asText()).isEqualTo("checkout-service");
         assertThat(node1h.get("service").asText()).isEqualTo("checkout-service");
         
@@ -103,7 +108,7 @@ public class EvidenceAgentTest extends TestKitSupport {
         var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         var errorNode = mapper.readTree(resultErrorRate);
         var latencyNode = mapper.readTree(resultLatency);
-        
+        log.debug("EvidenceAgent WithDifferentMetrics response: {}", resultErrorRate);
         assertThat(errorNode.has("metrics")).isTrue();
         assertThat(latencyNode.has("metrics")).isTrue();
         

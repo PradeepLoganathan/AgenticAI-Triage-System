@@ -1,5 +1,8 @@
 package com.example.sample.individual;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import akka.javasdk.testkit.TestKit;
 import akka.javasdk.testkit.TestKitSupport;
 import akka.javasdk.testkit.TestModelProvider;
@@ -15,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ClassifierAgentTest extends TestKitSupport {
 
     private final TestModelProvider classifierModel = new TestModelProvider();
+    private static final Logger log = LoggerFactory.getLogger(ClassifierAgentTest.class);
+
 
     @Override
     protected TestKit.Settings testKitSettings() {
@@ -48,6 +53,7 @@ public class ClassifierAgentTest extends TestKitSupport {
                     "Payment service is completely down since 14:30 UTC. Users are unable to complete transactions and getting 503 errors."
                 ));
 
+        log.info("ClassifierAgent response: {}", result);
         assertThat(result).contains("\"service\"");
         assertThat(result).contains("payment-service");
         assertThat(result).contains("\"severity\"");
@@ -81,6 +87,7 @@ public class ClassifierAgentTest extends TestKitSupport {
                 .invoke(new ClassifierAgent.Request(
                     "Database connection timeout in checkout service. Intermittent failures, ~30% error rate."
                 ));
+        log.info("ClassifierAgent response: {}", result);
 
         assertThat(result).contains("checkout-service");
         assertThat(result).contains("P2");
@@ -108,13 +115,14 @@ public class ClassifierAgentTest extends TestKitSupport {
             """, expectedSeverity);
         
         classifierModel.fixedResponse(mockResponse);
+        
 
         String result = componentClient
                 .forAgent()
                 .inSession("test-session-" + expectedSeverity.toLowerCase())
                 .method(ClassifierAgent::classify)
                 .invoke(new ClassifierAgent.Request(incident));
-
+        log.info("ClassifierAgent response for severity {}: {}", expectedSeverity, result);
         assertThat(result).contains(expectedSeverity);
     }
 
@@ -141,7 +149,7 @@ public class ClassifierAgentTest extends TestKitSupport {
                 .inSession("test-session-minimal")
                 .method(ClassifierAgent::classify)
                 .invoke(new ClassifierAgent.Request("Something is broken"));
-
+        log.info("ClassifierAgent response for minimal incident: {}", result);
         assertThat(result).contains("unknown");
         assertThat(result).contains("Insufficient information");
     }
