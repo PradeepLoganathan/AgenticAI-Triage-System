@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.example.sample.domain.TriageState;
 
+import static java.time.Duration.ofSeconds;
 
 @ComponentId("triage-workflow")
 public class TriageWorkflow extends Workflow<TriageState> {
@@ -82,7 +83,8 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 .addStep(triage())
                 .addStep(remediate())
                 .addStep(summarize())
-                .addStep(finalizeStep());
+                .addStep(finalizeStep())
+                .defaultStepTimeout(ofSeconds(300));
     }
 
     private Step classify() {

@@ -9,6 +9,8 @@ import akka.javasdk.annotations.Description;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 @ComponentId("evidence-agent")
 public class EvidenceAgent extends Agent {
 
+    private static final Logger logger = LoggerFactory.getLogger(EvidenceAgent.class);
     
     private static final String SYSTEM = """
         You are an expert evidence collection and analysis agent for incident response.
@@ -84,6 +87,10 @@ public class EvidenceAgent extends Agent {
     ) {}
 
     public Effect<String> gather(Request req) {
+        logger.info("🔍 EvidenceAgent.gather() STARTING - Service: {}, Metrics: {}, Range: {}", 
+            req.service(), req.metricsExpr(), req.range());
+        logger.debug("EvidenceAgent OpenAI API key present: {}", System.getenv("OPENAI_API_KEY") != null);
+        
         String contextualPrompt = String.format(
             "Incident Evidence Collection Request:\n" +
             "- Service: %s\n" +
@@ -96,6 +103,9 @@ public class EvidenceAgent extends Agent {
             req.range() != null ? req.range() : "1h",
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         );
+        
+        logger.debug("EvidenceAgent prompt length: {} chars", contextualPrompt.length());
+        long startTime = System.currentTimeMillis();
         
         return effects()
                 .model(
@@ -117,8 +127,11 @@ public class EvidenceAgent extends Agent {
             @Description("Service name to fetch logs from") String service,
             @Description("Number of log lines to fetch") int lines
     ) {
+        logger.info("📝 EvidenceAgent.fetchLogs() called - Service: {}, Lines: {}", service, lines);
         String logs = readLogsFromFile(service, lines);
         EvidenceAnalysis analysis = analyzeLogs(logs, service);
+        logger.debug("📝 fetchLogs analysis - Error count: {}, Patterns: {}", 
+            analysis.errorCount(), analysis.errorPatterns().size());
         
         return String.format(
             "Logs Analysis for %s:\n" +
@@ -167,8 +180,10 @@ public class EvidenceAgent extends Agent {
             @Description("Metrics expression to query") String expr,
             @Description("Time range for the query") String range
     ) {
+        logger.info("📊 EvidenceAgent.queryMetrics() called - Expr: {}, Range: {}", expr, range);
         String metrics = readMetricsFromFile(expr, range);
         List<String> insights = analyzeMetrics(metrics, expr);
+        logger.debug("📊 queryMetrics analysis - Insights count: {}", insights.size());
         
         return String.format(
             "Metrics Analysis for '%s' over %s:\n" +
