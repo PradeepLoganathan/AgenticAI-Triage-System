@@ -1,0 +1,49 @@
+{
+  "services": [
+    "api-gateway",
+    "auth-service", 
+    "cache-service",
+    "catalog-service",
+    "checkout-service",
+    "database",
+    "inventory-service",
+    "load-balancer",
+    "message-queue",
+    "notification-service",
+    "order-service",
+    "payment-service",
+    "recommendation-service",
+    "review-service",
+    "search-service",
+    "shipping-service",
+    "user-service"
+  ],
+  "categories": {
+    "Core Business": ["payment-service", "order-service", "checkout-service"],
+    "User Management": ["user-service", "auth-service"],
+    "Product Catalog": ["catalog-service", "inventory-service", "search-service"],
+    "Recommendations": ["recommendation-service", "review-service"],
+    "Infrastructure": ["api-gateway", "load-balancer", "database", "cache-service", "message-queue"],
+    "Communications": ["notification-service", "shipping-service"]
+  },
+  "domain_mappings": {
+    "payment-service": "payments",
+    "order-service": "orders",
+    "checkout-service": "checkout",
+    "user-service": "user-management",
+    "auth-service": "authentication",
+    "catalog-service": "product-catalog",
+    "inventory-service": "inventory",
+    "search-service": "search",
+    "recommendation-service": "recommendations",
+    "review-service": "reviews",
+    "notification-service": "notifications",
+    "shipping-service": "logistics",
+    "api-gateway": "infrastructure",
+    "load-balancer": "infrastructure",
+    "database": "infrastructure",
+    "cache-service": "infrastructure",
+    "message-queue": "infrastructure"
+  },
+  "usage_instructions": "Always select a service from this list. If uncertain, choose the closest match or 'unknown-service' if none apply. Infrastructure services (database, cache-service, message-queue) should be classified under 'infrastructure' domain."
+}

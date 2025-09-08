@@ -1,0 +1,63 @@
+{
+  "query": "throughput:rate",
+  "time_range": "1h",
+  "timestamp": "2025-01-15T14:30:00Z",
+  "metrics": {
+    "request_rate": {
+      "current": 156,
+      "peak_1h": 289,
+      "average_1h": 134,
+      "baseline": 120,
+      "unit": "requests_per_second"
+    },
+    "success_rate": {
+      "current": 84.7,
+      "target": 99.5,
+      "previous_hour": 97.8,
+      "status": "degraded",
+      "unit": "percentage"
+    },
+    "response_codes": {
+      "2xx": 84.7,
+      "4xx": 8.2,
+      "5xx": 7.1,
+      "unit": "percentage"
+    },
+    "order_processing": {
+      "orders_created_per_min": 45,
+      "orders_completed_per_min": 38,
+      "orders_failed_per_min": 7,
+      "average_processing_time": 2.3,
+      "unit_time": "seconds"
+    },
+    "dependency_health": {
+      "inventory_service": {
+        "success_rate": 76.2,
+        "avg_response_time": 890,
+        "status": "degraded"
+      },
+      "payment_service": {
+        "success_rate": 91.4,
+        "avg_response_time": 245,
+        "status": "degraded"
+      },
+      "shipping_service": {
+        "success_rate": 99.1,
+        "avg_response_time": 125,
+        "status": "healthy"
+      }
+    },
+    "capacity_indicators": {
+      "peak_throughput_capacity": 350,
+      "current_utilization": 44.6,
+      "bottleneck": "inventory_service_timeouts",
+      "headroom": "sufficient"
+    },
+    "business_impact": {
+      "successful_orders": 2280,
+      "failed_orders": 412,
+      "revenue_processed": "$89,450",
+      "estimated_loss": "$15,230"
+    }
+  }
+}

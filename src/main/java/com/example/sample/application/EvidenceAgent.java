@@ -13,11 +13,15 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.io.InputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 @ComponentId("evidence-agent")
 public class EvidenceAgent extends Agent {
 
-    private final McpClient mcp = new McpClient();
     
     private static final String SYSTEM = """
         You are an expert evidence collection and analysis agent for incident response.
@@ -113,7 +117,7 @@ public class EvidenceAgent extends Agent {
             @Description("Service name to fetch logs from") String service,
             @Description("Number of log lines to fetch") int lines
     ) {
-        String logs = mcp.fetchLogs(service, lines);
+        String logs = readLogsFromFile(service, lines);
         EvidenceAnalysis analysis = analyzeLogs(logs, service);
         
         return String.format(
@@ -130,12 +134,40 @@ public class EvidenceAgent extends Agent {
         );
     }
     
+    private String readLogsFromFile(String service, int maxLines) {
+        try {
+            String fileName = String.format("logs/%s.log", service);
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
+            
+            if (inputStream == null) {
+                return String.format("No log file found for service: %s", service);
+            }
+            
+            String fullLogs = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            String[] allLines = fullLogs.split("\n");
+            
+            // Return last N lines (most recent logs)
+            int startIndex = Math.max(0, allLines.length - maxLines);
+            int actualLines = Math.min(maxLines, allLines.length);
+            
+            StringBuilder result = new StringBuilder();
+            for (int i = startIndex; i < allLines.length; i++) {
+                result.append(allLines[i]).append("\n");
+            }
+            
+            return String.format("Recent %d lines from %s:\n%s", actualLines, service, result.toString());
+            
+        } catch (IOException e) {
+            return String.format("Error reading logs for %s: %s", service, e.getMessage());
+        }
+    }
+    
     @FunctionTool(name = "query_metrics", description = "Query performance metrics with analysis")
     public String queryMetrics(
             @Description("Metrics expression to query") String expr,
             @Description("Time range for the query") String range
     ) {
-        String metrics = mcp.queryMetrics(expr, range);
+        String metrics = readMetricsFromFile(expr, range);
         List<String> insights = analyzeMetrics(metrics, expr);
         
         return String.format(
@@ -146,6 +178,129 @@ public class EvidenceAgent extends Agent {
             String.join(", ", insights),
             metrics
         );
+    }
+    
+    private String readMetricsFromFile(String expr, String range) {
+        try {
+            String fileName = determineMetricsFile(expr);
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
+            
+            if (inputStream == null) {
+                return String.format("No metrics file found for query: %s", expr);
+            }
+            
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode metricsData = mapper.readTree(inputStream);
+            
+            return formatMetricsOutput(metricsData, expr, range);
+            
+        } catch (IOException e) {
+            return String.format("Error reading metrics for query '%s': %s", expr, e.getMessage());
+        }
+    }
+    
+    private String determineMetricsFile(String expr) {
+        if (expr.contains("error") || expr.contains("fail")) {
+            return "metrics/payment-service-errors.json";
+        } else if (expr.contains("latency") || expr.contains("response_time")) {
+            return "metrics/payment-service-latency.json";
+        } else if (expr.contains("cpu") || expr.contains("memory") || expr.contains("resource")) {
+            return "metrics/user-service-resources.json";
+        } else if (expr.contains("throughput") || expr.contains("rate")) {
+            return "metrics/order-service-throughput.json";
+        } else {
+            // Default to error metrics if unsure
+            return "metrics/payment-service-errors.json";
+        }
+    }
+    
+    private String formatMetricsOutput(JsonNode metricsData, String expr, String range) {
+        StringBuilder output = new StringBuilder();
+        output.append("Metrics Data Summary:\n");
+        
+        // Extract key metrics based on the data structure
+        JsonNode metrics = metricsData.get("metrics");
+        if (metrics == null) {
+            return "Invalid metrics file format";
+        }
+        
+        // Format error metrics
+        if (metrics.has("error_rate")) {
+            JsonNode errorRate = metrics.get("error_rate");
+            output.append(String.format("- Error Rate: %.1f%% (%s), Previous: %.1f%%\n", 
+                errorRate.get("current").asDouble(),
+                errorRate.get("status").asText(),
+                errorRate.get("previous_hour").asDouble()));
+                
+            JsonNode errorCount = metrics.get("error_count");
+            output.append(String.format("- Total Errors: %d requests\n", 
+                errorCount.get("total").asInt()));
+                
+            if (metrics.has("error_spike") && metrics.get("error_spike").get("detected").asBoolean()) {
+                JsonNode spike = metrics.get("error_spike");
+                output.append(String.format("- Spike Detected: %s (peak: %.1f%%, cause: %s)\n",
+                    spike.get("time_window").asText(),
+                    spike.get("peak_rate").asDouble(),
+                    spike.get("primary_cause").asText()));
+            }
+        }
+        
+        // Format latency metrics
+        if (metrics.has("latency_percentiles")) {
+            JsonNode latency = metrics.get("latency_percentiles");
+            output.append(String.format("- Latency P95: %dms, P99: %dms, P99.9: %dms\n",
+                latency.get("p95").asInt(),
+                latency.get("p99").asInt(),
+                latency.get("p99.9").asInt()));
+                
+            JsonNode avgLatency = metrics.get("average_latency");
+            output.append(String.format("- Average Latency: %dms (%s), Baseline: %dms\n",
+                avgLatency.get("current").asInt(),
+                avgLatency.get("status").asText(),
+                avgLatency.get("baseline").asInt()));
+        }
+        
+        // Format resource metrics  
+        if (metrics.has("cpu_utilization")) {
+            JsonNode cpu = metrics.get("cpu_utilization");
+            output.append(String.format("- CPU Usage: %.1f%% (%s), Peak: %.1f%%\n",
+                cpu.get("current").asDouble(),
+                cpu.get("status").asText(),
+                cpu.get("peak_15min").asDouble()));
+                
+            JsonNode memory = metrics.get("memory_utilization");
+            output.append(String.format("- Memory: Heap %.1f%%, GC Pressure: %s\n",
+                memory.get("heap_used").asDouble(),
+                memory.get("gc_pressure").asText()));
+        }
+        
+        // Format throughput metrics
+        if (metrics.has("request_rate")) {
+            JsonNode requestRate = metrics.get("request_rate");
+            output.append(String.format("- Request Rate: %d req/sec, Peak: %d req/sec\n",
+                requestRate.get("current").asInt(),
+                requestRate.get("peak_1h").asInt()));
+                
+            JsonNode successRate = metrics.get("success_rate");
+            output.append(String.format("- Success Rate: %.1f%% (%s), Target: %.1f%%\n",
+                successRate.get("current").asDouble(),
+                successRate.get("status").asText(),
+                successRate.get("target").asDouble()));
+        }
+        
+        // Add alerts if present
+        if (metrics.has("alerts")) {
+            JsonNode alerts = metrics.get("alerts");
+            if (alerts.isArray() && alerts.size() > 0) {
+                output.append("- Active Alerts: ");
+                for (JsonNode alert : alerts) {
+                    output.append(alert.asText()).append("; ");
+                }
+                output.append("\n");
+            }
+        }
+        
+        return output.toString();
     }
     
     @FunctionTool(name = "correlate_evidence", description = "Correlate findings across different evidence sources")
@@ -232,14 +387,5 @@ public class EvidenceAgent extends Agent {
         return insights;
     }
     
-    private static String escape(String s) {
-        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    private static String toJsonString(String s) {
-        if (s == null) return "null";
-        String v = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-        return "\"" + v + "\"";
-    }
 }
 
