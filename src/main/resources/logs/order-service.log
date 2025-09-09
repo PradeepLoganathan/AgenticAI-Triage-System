@@ -1,0 +1,27 @@
+2025-01-15 14:27:45.123 INFO  [order-service] [req-78901] Order creation started: ORD-98765
+2025-01-15 14:27:45.145 DEBUG [order-service] [req-78901] Validating inventory for 3 items
+2025-01-15 14:27:45.167 INFO  [order-service] [req-78901] Inventory check passed
+2025-01-15 14:27:45.189 DEBUG [order-service] [req-78901] Calculating shipping costs
+2025-01-15 14:27:45.201 INFO  [order-service] [req-78901] Order total: $124.99
+2025-01-15 14:27:45.223 INFO  [order-service] [req-78901] Order created successfully: ORD-98765
+2025-01-15 14:27:45.245 INFO  [order-service] [req-78901] Sending order to payment service
+2025-01-15 14:29:05.567 ERROR [order-service] [req-78901] Payment notification: Payment failed for order ORD-98765
+2025-01-15 14:29:05.568 INFO  [order-service] [req-78901] Order status updated: PAYMENT_FAILED
+2025-01-15 14:29:05.589 INFO  [order-service] [req-78901] Releasing reserved inventory
+2025-01-15 14:28:30.890 INFO  [order-service] [req-78902] Order creation started: ORD-98766
+2025-01-15 14:28:30.912 INFO  [order-service] [req-78902] Order created successfully: ORD-98766
+2025-01-15 14:29:10.234 INFO  [order-service] [req-78902] Payment confirmation received: ORD-98766
+2025-01-15 14:29:10.256 INFO  [order-service] [req-78902] Order status updated: PAID
+2025-01-15 14:29:10.278 INFO  [order-service] [req-78902] Sending order to fulfillment
+2025-01-15 14:30:15.456 ERROR [order-service] [req-78903] Inventory service timeout: Failed to check item availability
+2025-01-15 14:30:15.457 ERROR [order-service] [req-78903] Order creation failed: Cannot validate inventory
+2025-01-15 14:30:20.789 ERROR [order-service] [req-78904] Inventory service timeout: Failed to check item availability
+2025-01-15 14:30:25.012 ERROR [order-service] [req-78905] Inventory service timeout: Failed to check item availability
+2025-01-15 14:30:30.345 WARN  [order-service] Inventory service appears to be down - 3 consecutive failures
+2025-01-15 14:30:35.678 INFO  [order-service] [req-78906] Order creation started: ORD-98767
+2025-01-15 14:30:35.690 INFO  [order-service] [req-78906] Using cached inventory data due to service issues
+2025-01-15 14:30:35.712 WARN  [order-service] [req-78906] Order created with cached inventory (may be stale)
+2025-01-15 14:31:00.123 INFO  [order-service] Health check: OK - Orders processed: 89 (3 failed)
+2025-01-15 14:31:15.456 INFO  [order-service] [req-78907] Order cancellation: ORD-98765
+2025-01-15 14:31:15.478 INFO  [order-service] [req-78907] Refund initiated for cancelled order
+2025-01-15 14:31:15.490 INFO  [order-service] [req-78907] Order status updated: CANCELLED

@@ -1,0 +1,47 @@
+{
+  "query": "response_time:avg",
+  "time_range": "30m",
+  "timestamp": "2025-01-15T14:30:00Z",
+  "metrics": {
+    "latency_percentiles": {
+      "p50": 125,
+      "p95": 890,
+      "p99": 2100,
+      "p99.9": 5400,
+      "unit": "ms"
+    },
+    "average_latency": {
+      "current": 245,
+      "previous_30min": 89,
+      "baseline": 120,
+      "status": "elevated",
+      "unit": "ms"
+    },
+    "latency_distribution": {
+      "under_100ms": 45,
+      "100_500ms": 35,
+      "500ms_1s": 15,
+      "1s_5s": 4,
+      "over_5s": 1,
+      "unit": "percentage"
+    },
+    "slow_operations": {
+      "payment_gateway_calls": {
+        "avg_latency": 1250,
+        "timeout_rate": 12.3,
+        "unit": "ms"
+      },
+      "database_queries": {
+        "avg_latency": 450,
+        "slow_query_count": 23,
+        "unit": "ms"
+      }
+    },
+    "performance_trend": "degrading",
+    "root_cause_indicators": [
+      "payment gateway response times increased 3x",
+      "database connection pool near capacity",
+      "increased retry attempts"
+    ]
+  }
+}

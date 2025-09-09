@@ -345,6 +345,69 @@
             float: right;
         }
 
+        .conversation-timeline {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .conversation-timeline h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .timeline-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #e9ecef;
+        }
+
+        .timeline-entry.system {
+            border-left-color: #6c757d;
+        }
+
+        .timeline-entry.user {
+            border-left-color: #007bff;
+        }
+
+        .timeline-entry.assistant {
+            border-left-color: #28a745;
+        }
+
+        .timeline-icon {
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-role {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .timeline-message {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #495057;
+        }
+
+        .timeline-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 8px;
+        }
+
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -360,7 +423,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 Akka AI Agent Triage System</h1>
+            <h1>Akka AI Agent Triage System</h1>
             <p>Intelligent Multi-Agent Incident Response Workflow</p>
         </div>
 
@@ -369,16 +432,16 @@
                 <div class="demo-scenarios">
                     <h3>Demo Scenarios</h3>
                     <button class="scenario-btn" onclick="loadScenario('payment-outage')">
-                        💳 Payment Service Outage (P1)
+                        Payment Service Outage (P1)
                     </button>
                     <button class="scenario-btn" onclick="loadScenario('database-slow')">
-                        🗄️ Database Performance Degradation (P2)
+                        Database Performance Degradation (P2)
                     </button>
                     <button class="scenario-btn" onclick="loadScenario('auth-errors')">
-                        🔐 Authentication Service Errors (P2)
+                        Authentication Service Errors (P2)
                     </button>
                     <button class="scenario-btn" onclick="loadScenario('deployment-issue')">
-                        🚀 Post-Deployment Issues (P3)
+                        Post-Deployment Issues (P3)
                     </button>
                 </div>
 
@@ -394,7 +457,7 @@
                     </div>
 
                     <button type="submit" class="btn-primary" id="startBtn">
-                        🚀 Start Triage Workflow
+                        Start Triage Workflow
                     </button>
                 </form>
 
@@ -404,7 +467,7 @@
                         <div class="metric-label">Total Time</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value" id="completedSteps">0/6</div>
+                        <div class="metric-value" id="completedSteps">0/7</div>
                         <div class="metric-label">Completed Steps</div>
                     </div>
                     <div class="metric-card">
@@ -428,6 +491,10 @@
                         <div class="step-title">Triage</div>
                         <div class="step-desc">Root cause analysis</div>
                     </div>
+                    <div class="step" data-step="knowledge">
+                        <div class="step-title">Knowledge</div>
+                        <div class="step-desc">Search runbooks & docs</div>
+                    </div>
                     <div class="step" data-step="remediate">
                         <div class="step-title">Remediate</div>
                         <div class="step-desc">Plan solutions</div>
@@ -442,10 +509,18 @@
                     </div>
                 </div>
 
+                <div class="conversation-timeline" id="conversationTimeline" style="display: none;">
+                    <h3>📋 Conversation Timeline</h3>
+                    <div class="timeline-content" id="timelineContent"></div>
+                    <button class="btn-primary" onclick="exportResults()" id="exportBtn" style="display: none; margin-top: 15px;">
+                        📄 Export Results
+                    </button>
+                </div>
+
                 <div class="agent-cards" id="agentCards">
                     <div class="agent-card" id="classifier-card">
                         <div class="agent-header">
-                            <div class="agent-name">🎯 Classifier Agent</div>
+                            <div class="agent-name">Classifier Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -462,7 +537,7 @@
 
                     <div class="agent-card" id="evidence-card">
                         <div class="agent-header">
-                            <div class="agent-name">🔍 Evidence Agent</div>
+                            <div class="agent-name">Evidence Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -479,7 +554,7 @@
 
                     <div class="agent-card" id="triage-card">
                         <div class="agent-header">
-                            <div class="agent-name">🧠 Triage Agent</div>
+                            <div class="agent-name">Triage Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -494,9 +569,26 @@
                         </div>
                     </div>
 
+                    <div class="agent-card" id="knowledge-card">
+                        <div class="agent-header">
+                            <div class="agent-name">Knowledge Base Agent</div>
+                            <div class="agent-status">Waiting...</div>
+                        </div>
+                        <div class="agent-content">
+                            <div class="input-output">
+                                <h4>Input:</h4>
+                                <div class="code-block" id="knowledge-input">Waiting for triage...</div>
+                            </div>
+                            <div class="input-output">
+                                <h4>Output:</h4>
+                                <div class="code-block" id="knowledge-output">No output yet</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="agent-card" id="remediation-card">
                         <div class="agent-header">
-                            <div class="agent-name">🛠️ Remediation Agent</div>
+                            <div class="agent-name">Remediation Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -513,7 +605,7 @@
 
                     <div class="agent-card" id="summary-card">
                         <div class="agent-header">
-                            <div class="agent-name">📋 Summary Agent</div>
+                            <div class="agent-name">Summary Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -700,7 +792,7 @@ Monitoring:
 
         // Reset agent cards
         function resetAgentCards() {
-            const agents = ['classifier', 'evidence', 'triage', 'remediation', 'summary'];
+            const agents = ['classifier', 'evidence', 'triage', 'knowledge', 'remediation', 'summary'];
             agents.forEach(agent => {
                 const card = document.getElementById(`${agent}-card`);
                 const status = card.querySelector('.agent-status');
@@ -720,14 +812,35 @@ Monitoring:
             });
         }
 
+        let consecutiveErrors = 0;
+        let lastProgressTime = Date.now();
+
         // Start polling for updates
         function startPolling() {
             pollingInterval = setInterval(async () => {
                 try {
                     await updateWorkflowStatus();
                     await updateDetailedState();
+                    
+                    // Reset error counter on success
+                    consecutiveErrors = 0;
+                    
+                    // Check for timeout (no progress for 5 minutes)
+                    if (Date.now() - lastProgressTime > 300000) {
+                        showError('Workflow appears to be stuck. Consider restarting.');
+                        clearInterval(pollingInterval);
+                        resetUI();
+                    }
+                    
                 } catch (error) {
                     console.error('Polling error:', error);
+                    consecutiveErrors++;
+                    
+                    if (consecutiveErrors >= 5) {
+                        showError('Multiple polling failures. Workflow may have failed.');
+                        clearInterval(pollingInterval);
+                        resetUI();
+                    }
                 }
             }, 2000); // Poll every 2 seconds
         }
@@ -767,31 +880,78 @@ Monitoring:
             // Update metrics
             updateMetrics();
 
-            // Process conversations to understand current state
-            conversations.forEach(conv => {
+            let currentStep = '';
+            let completedSteps = [];
+
+            // Process conversations to understand current state and active step
+            conversations.forEach((conv, index) => {
                 if (conv.role === 'assistant') {
                     const content = conv.content.toLowerCase();
+                    const timestamp = new Date().toLocaleTimeString();
+                    
                     if (content.includes('classification completed')) {
+                        completedSteps.push('classify');
                         updateStepStatus('classify', 'completed');
-                        updateAgentStatus('classifier', 'completed', 'Classification completed');
+                        updateAgentStatus('classifier', 'completed', `Completed at ${timestamp}`);
+                        if (!completedSteps.includes('evidence')) currentStep = 'evidence';
+                        lastProgressTime = Date.now();
                     } else if (content.includes('evidence analysis completed')) {
+                        completedSteps.push('evidence');
                         updateStepStatus('evidence', 'completed');
-                        updateAgentStatus('evidence', 'completed', 'Evidence analysis completed');
+                        updateAgentStatus('evidence', 'completed', `Completed at ${timestamp}`);
+                        if (!completedSteps.includes('triage')) currentStep = 'triage';
+                        lastProgressTime = Date.now();
                     } else if (content.includes('triage analysis completed')) {
+                        completedSteps.push('triage');
                         updateStepStatus('triage', 'completed');
-                        updateAgentStatus('triage', 'completed', 'Triage analysis completed');
+                        updateAgentStatus('triage', 'completed', `Completed at ${timestamp}`);
+                        if (!completedSteps.includes('knowledge')) currentStep = 'knowledge';
+                        lastProgressTime = Date.now();
+                    } else if (content.includes('knowledge base search completed.')) {
+                        completedSteps.push('knowledge');
+                        updateStepStatus('knowledge', 'completed');
+                        updateAgentStatus('knowledge', 'completed', `Completed at ${timestamp}`);
+                        if (!completedSteps.includes('remediate')) currentStep = 'remediate';
+                        lastProgressTime = Date.now();
                     } else if (content.includes('remediation plan completed')) {
+                        completedSteps.push('remediate');
                         updateStepStatus('remediate', 'completed');
-                        updateAgentStatus('remediation', 'completed', 'Remediation plan completed');
+                        updateAgentStatus('remediation', 'completed', `Completed at ${timestamp}`);
+                        if (!completedSteps.includes('summarize')) currentStep = 'summarize';
+                        lastProgressTime = Date.now();
                     } else if (content.includes('summaries completed')) {
+                        completedSteps.push('summarize');
                         updateStepStatus('summarize', 'completed');
-                        updateAgentStatus('summary', 'completed', 'Summaries completed');
+                        updateAgentStatus('summary', 'completed', `Completed at ${timestamp}`);
+                        currentStep = 'complete';
+                        lastProgressTime = Date.now();
                     } else if (content.includes('workflow completed')) {
                         updateStepStatus('complete', 'completed');
                         completeWorkflow();
+                        lastProgressTime = Date.now();
+                        return;
                     }
                 }
             });
+
+            // Update active step indicator
+            if (currentStep && !completedSteps.includes(currentStep)) {
+                updateStepStatus(currentStep, 'active');
+                const agentMap = {
+                    'classify': 'classifier',
+                    'evidence': 'evidence', 
+                    'triage': 'triage',
+                    'knowledge': 'knowledge',
+                    'remediate': 'remediation',
+                    'summarize': 'summary'
+                };
+                if (agentMap[currentStep]) {
+                    updateAgentStatus(agentMap[currentStep], 'active', 'Processing...');
+                }
+            }
+
+            // Display conversation timeline
+            updateConversationTimeline(conversations);
         }
 
         // Update UI from detailed state
@@ -839,10 +999,19 @@ Monitoring:
                 updateAgentStatus('triage', 'completed', 'Triage completed');
             }
 
+            // Update knowledge base
+            if (state.knowledgeBaseResult) {
+                document.getElementById('knowledge-input').textContent = 
+                    `Service: ${extractServiceName(state.classificationJson)}\nSearching runbooks and documentation...`;
+                document.getElementById('knowledge-output').textContent = 
+                    formatJSON(state.knowledgeBaseResult);
+                updateAgentStatus('knowledge', 'completed', 'Knowledge base search completed');
+            }
+
             // Update remediation
             if (state.remediationText) {
                 document.getElementById('remediation-input').textContent = 
-                    `All previous context:\n- Incident\n- Classification\n- Evidence\n- Triage Analysis`;
+                    `All previous context:\n- Incident\n- Classification\n- Evidence\n- Triage Analysis\n- Knowledge Base Results`;
                 document.getElementById('remediation-output').textContent = 
                     formatJSON(state.remediationText);
                 updateAgentStatus('remediation', 'completed', 'Remediation planned');
@@ -855,6 +1024,15 @@ Monitoring:
                 document.getElementById('summary-output').textContent = 
                     formatJSON(state.summaryText);
                 updateAgentStatus('summary', 'completed', 'Summary completed');
+            }
+
+            // Update status based on workflow state
+            if (state.status === 'TRIAGED' && !state.knowledgeBaseResult) {
+                updateAgentStatus('knowledge', 'active', 'Searching knowledge base...');
+                updateStepStatus('knowledge', 'active');
+            } else if (state.status === 'KNOWLEDGE_BASE_SEARCHED' && state.knowledgeBaseResult && !document.getElementById('knowledge-card').classList.contains('completed')) {
+                updateAgentStatus('knowledge', 'completed', 'Knowledge base search completed');
+                updateStepStatus('knowledge', 'completed');
             }
 
             // Check if workflow is complete
@@ -919,13 +1097,97 @@ Monitoring:
 
             // Count completed steps
             const completedSteps = document.querySelectorAll('.step.completed').length;
-            document.getElementById('completedSteps').textContent = `${completedSteps}/6`;
+            document.getElementById('completedSteps').textContent = `${completedSteps}/7`;
+        }
+
+        // Update conversation timeline
+        function updateConversationTimeline(conversations) {
+            const timeline = document.getElementById('conversationTimeline');
+            const timelineContent = document.getElementById('timelineContent');
+            
+            if (conversations && conversations.length > 0) {
+                timeline.style.display = 'block';
+                
+                timelineContent.innerHTML = '';
+                conversations.forEach(conv => {
+                    const entry = document.createElement('div');
+                    entry.className = `timeline-entry ${conv.role}`;
+                    
+                    const icon = getTimelineIcon(conv.role);
+                    const roleLabel = conv.role.charAt(0).toUpperCase() + conv.role.slice(1);
+                    
+                    entry.innerHTML = `
+                        <div class="timeline-icon">${icon}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-role">${roleLabel}</div>
+                            <div class="timeline-message">${conv.content}</div>
+                            <div class="timeline-time">Step ${conversations.indexOf(conv) + 1}</div>
+                        </div>
+                    `;
+                    
+                    timelineContent.appendChild(entry);
+                });
+            }
+        }
+
+        // Get timeline icon based on role
+        function getTimelineIcon(role) {
+            switch(role) {
+                case 'system': return '⚙️';
+                case 'user': return '👤';
+                case 'assistant': return '🤖';
+                default: return '💬';
+            }
+        }
+
+        // Export results
+        function exportResults() {
+            if (!currentTriageId) return;
+
+            // Gather all data for export
+            const exportData = {
+                triageId: currentTriageId,
+                timestamp: new Date().toISOString(),
+                duration: startTime ? Math.floor((Date.now() - startTime) / 1000) : 0,
+                incident: document.getElementById('incident').value,
+                results: {
+                    classification: document.getElementById('classifier-output').textContent,
+                    evidence: document.getElementById('evidence-output').textContent,
+                    triage: document.getElementById('triage-output').textContent,
+                    knowledgeBase: document.getElementById('knowledge-output').textContent,
+                    remediation: document.getElementById('remediation-output').textContent,
+                    summary: document.getElementById('summary-output').textContent
+                },
+                timeline: Array.from(document.querySelectorAll('.timeline-entry')).map(entry => ({
+                    role: entry.querySelector('.timeline-role').textContent.toLowerCase(),
+                    content: entry.querySelector('.timeline-message').textContent,
+                    step: entry.querySelector('.timeline-time').textContent
+                }))
+            };
+
+            // Create and download file
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                type: 'application/json'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `triage-${currentTriageId}-${new Date().toISOString().slice(0, 19)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showSuccess('Results exported successfully!');
         }
 
         // Complete workflow
         function completeWorkflow() {
             updateStepStatus('complete', 'completed');
             resetUI();
+            
+            // Show export button
+            document.getElementById('exportBtn').style.display = 'block';
             
             // Show completion message
             setTimeout(() => {

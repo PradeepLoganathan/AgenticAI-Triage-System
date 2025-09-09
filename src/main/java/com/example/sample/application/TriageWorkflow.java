@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.example.sample.domain.TriageState;
 
+import static java.time.Duration.ofSeconds;
 
 @ComponentId("triage-workflow")
 public class TriageWorkflow extends Workflow<TriageState> {
@@ -80,15 +81,17 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 .addStep(classify())
                 .addStep(gatherEvidence())
                 .addStep(triage())
+                .addStep(queryKnowledgeBase())
                 .addStep(remediate())
                 .addStep(summarize())
-                .addStep(finalizeStep());
+                .addStep(finalizeStep())
+                .defaultStepTimeout(ofSeconds(300));
     }
 
     private Step classify() {
         return step("classify")
                 .asyncCall(StartTriage.class, cmd -> {
-                    logger.info("🎯 STEP 1/6: CLASSIFICATION - Calling ClassifierAgent with enhanced reasoning");
+                    logger.info("🎯 STEP 1/7: CLASSIFICATION - Calling ClassifierAgent with enhanced reasoning");
                     logger.debug("ClassifierAgent input: {}", cmd.incident().substring(0, Math.min(200, cmd.incident().length())) + "...");
                     
                     return CompletableFuture.supplyAsync(() ->
@@ -134,7 +137,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     String metricsExpr = severity.equals("P1") ? "errors:rate1m" : "errors:rate5m";
                     String timeRange = severity.equals("P1") ? "30m" : "1h";
                     
-                    logger.info("🔍 STEP 2/6: EVIDENCE GATHERING - Calling EvidenceAgent for service: {} ({})", service, severity);
+                    logger.info("🔍 STEP 2/7: EVIDENCE GATHERING - Calling EvidenceAgent for service: {} ({})", service, severity);
                     logger.debug("EvidenceAgent params: metrics={}, timeRange={}", metricsExpr, timeRange);
                     
                     return componentClient
@@ -175,7 +178,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
     private Step triage() {
         return step("triage")
                 .asyncCall(() -> CompletableFuture.supplyAsync(() -> {
-                    logger.info("🔬 STEP 3/6: TRIAGE ANALYSIS - Calling TriageAgent for systematic diagnosis");
+                    logger.info("🔬 STEP 3/7: TRIAGE ANALYSIS - Calling TriageAgent for systematic diagnosis");
                     
                     // Build comprehensive context for triage agent
                     String enrichedContext = String.format(
@@ -221,6 +224,28 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                     .withTriageText(triageResult)
                                     .addConversation(new Conversation("assistant", conversationEntry))
                                     .withStatus(TriageState.Status.TRIAGED))
+                            .transitionTo("query_knowledge_base");
+                });
+    }
+
+    private Step queryKnowledgeBase() {
+        return step("query_knowledge_base")
+                .asyncCall(() -> CompletableFuture.supplyAsync(() -> {
+                    logger.info("🧠 STEP 4/7: KNOWLEDGE BASE SEARCH - Calling KnowledgeBaseAgent");
+                    String service = AgentUtils.extractServiceFromClassification(currentState().classificationJson());
+                    return componentClient
+                            .forAgent()
+                            .inSession(UUID.randomUUID().toString())
+                            .method(KnowledgeBaseAgent::search)
+                            .invoke(service);
+                }))
+                .andThen(String.class, knowledgeBaseResult -> {
+                    logger.info("✅ KNOWLEDGE BASE SEARCH COMPLETE");
+                    return effects()
+                            .updateState(currentState()
+                                    .withKnowledgeBaseResult(knowledgeBaseResult)
+                                    .addConversation(new Conversation("assistant", "Knowledge base search completed."))
+                                    .withStatus(TriageState.Status.KNOWLEDGE_BASE_SEARCHED))
                             .transitionTo("remediate");
                 });
     }
@@ -228,7 +253,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
     private Step remediate() {
         return step("remediate")
                 .asyncCall(() -> CompletableFuture.supplyAsync(() -> {
-                    logger.info("🛠️ STEP 4/6: REMEDIATION PLANNING - Calling RemediationAgent with risk assessment");
+                    logger.info("🛠️ STEP 5/7: REMEDIATION PLANNING - Calling RemediationAgent with risk assessment");
                     
                     String evidenceJson = toEvidenceJson(currentState());
                     logger.debug("RemediationAgent inputs - Incident: {}, Evidence: {}", 
@@ -243,7 +268,8 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                     currentState().incident(),
                                     currentState().classificationJson(),
                                     evidenceJson,
-                                    currentState().triageText()));
+                                    currentState().triageText(),
+                                    currentState().knowledgeBaseResult()));
                 }))
                 .andThen(String.class, remediationResult -> {
                     // Extract key remediation information
@@ -274,7 +300,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
     private Step summarize() {
         return step("summarize")
                 .asyncCall(() -> CompletableFuture.supplyAsync(() -> {
-                    logger.info("📊 STEP 5/6: SUMMARY GENERATION - Calling SummaryAgent for multi-audience communication");
+                    logger.info("📊 STEP 6/7: SUMMARY GENERATION - Calling SummaryAgent for multi-audience communication");
                     
                     logger.debug("SummaryAgent processing complete workflow results for stakeholder communication");
                     
@@ -309,7 +335,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
     private Step finalizeStep() {
         return step("finalize")
                 .asyncCall(() -> {
-                    logger.info("🎯 STEP 6/6: FINALIZATION - Completing triage workflow");
+                    logger.info("🎯 STEP 7/7: FINALIZATION - Completing triage workflow");
                     return CompletableFuture.completedStage("ok");
                 })
                 .andThen(String.class, __ -> {

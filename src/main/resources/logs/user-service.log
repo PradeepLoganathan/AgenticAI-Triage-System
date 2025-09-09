@@ -1,0 +1,25 @@
+2025-01-15 14:25:30.123 INFO  [user-service] [req-45678] User login attempt: user@example.com
+2025-01-15 14:25:30.145 INFO  [user-service] [req-45678] Authentication successful for user: USR-123
+2025-01-15 14:25:30.167 INFO  [user-service] [req-45678] Session created: sess-abc123
+2025-01-15 14:26:15.234 INFO  [user-service] [req-45679] User registration request: newuser@example.com
+2025-01-15 14:26:15.256 DEBUG [user-service] [req-45679] Validating email format
+2025-01-15 14:26:15.278 DEBUG [user-service] [req-45679] Checking email uniqueness
+2025-01-15 14:26:15.301 INFO  [user-service] [req-45679] User created successfully: USR-124
+2025-01-15 14:27:00.456 WARN  [user-service] [req-45680] Failed login attempt: invalid_password for user@example.com
+2025-01-15 14:27:05.789 WARN  [user-service] [req-45681] Failed login attempt: invalid_password for user@example.com
+2025-01-15 14:27:10.012 WARN  [user-service] [req-45682] Failed login attempt: invalid_password for user@example.com
+2025-01-15 14:27:10.013 ERROR [user-service] [req-45682] Account locked due to multiple failed attempts: user@example.com
+2025-01-15 14:27:10.014 INFO  [user-service] [req-45682] Security alert sent to user email
+2025-01-15 14:28:00.345 INFO  [user-service] [req-45683] Password reset requested: user@example.com
+2025-01-15 14:28:00.367 INFO  [user-service] [req-45683] Reset token generated and sent
+2025-01-15 14:28:30.678 ERROR [user-service] [req-45684] Database connection pool exhausted: max_connections=50
+2025-01-15 14:28:30.679 ERROR [user-service] [req-45684] Login request failed: Database unavailable
+2025-01-15 14:28:35.901 ERROR [user-service] [req-45685] Database connection pool exhausted: max_connections=50
+2025-01-15 14:28:40.234 ERROR [user-service] [req-45686] Database connection pool exhausted: max_connections=50
+2025-01-15 14:28:45.567 INFO  [user-service] Connection pool recovered: active_connections=25
+2025-01-15 14:29:00.890 INFO  [user-service] [req-45687] User profile update: USR-125
+2025-01-15 14:29:00.912 DEBUG [user-service] [req-45687] Updating email preference settings
+2025-01-15 14:29:00.934 INFO  [user-service] [req-45687] Profile update successful
+2025-01-15 14:29:30.123 INFO  [user-service] Health check: OK - Active sessions: 1,247
+2025-01-15 14:30:00.456 INFO  [user-service] [req-45688] User logout: USR-123, session: sess-abc123
+2025-01-15 14:30:00.478 INFO  [user-service] [req-45688] Session invalidated successfully

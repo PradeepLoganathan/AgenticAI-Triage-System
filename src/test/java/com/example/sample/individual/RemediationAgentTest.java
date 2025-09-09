@@ -80,7 +80,8 @@ public class RemediationAgentTest extends TestKitSupport {
                     "Payment service down", 
                     "{\"service\":\"payment\",\"severity\":\"P1\"}", 
                     "{\"logs\":\"connection errors\",\"metrics\":\"pool exhausted\"}", 
-                    "Root cause: connection leak in v2.1.3"
+                    "Root cause: connection leak in v2.1.3",
+                    null
                 ));
 
         // Verify JSON structure
@@ -148,7 +149,8 @@ public class RemediationAgentTest extends TestKitSupport {
                     "Database corruption in payment records", 
                     "{\"service\":\"payment\",\"severity\":\"P1\"}", 
                     "{\"logs\":\"schema errors\",\"metrics\":\"data integrity alerts\"}", 
-                    "Root cause: corrupted schema migration"
+                    "Root cause: corrupted schema migration",
+                    null
                 ));
 
         // Verify high-risk identification
@@ -207,7 +209,8 @@ public class RemediationAgentTest extends TestKitSupport {
                     "Multi-service cascade failure requiring coordinated response", 
                     "{\"service\":\"multiple\",\"severity\":\"P1\"}", 
                     "{\"logs\":\"cascade errors\",\"metrics\":\"multiple service alerts\"}", 
-                    "Complex incident requiring team coordination"
+                    "Complex incident requiring team coordination",
+                    null
                 ));
 
         // Verify resource planning
@@ -261,7 +264,8 @@ public class RemediationAgentTest extends TestKitSupport {
                     "Failed deployment needs rollback", 
                     "{\"service\":\"api\",\"severity\":\"P2\"}", 
                     "{\"logs\":\"deployment errors\",\"metrics\":\"increased latency\"}", 
-                    "Bad deployment in production"
+                    "Bad deployment in production",
+                    null
                 ));
 
         // Verify rollback procedures

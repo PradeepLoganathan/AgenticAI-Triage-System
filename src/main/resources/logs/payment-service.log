@@ -1,0 +1,29 @@
+2025-01-15 14:28:45.123 INFO  [payment-service] [req-12345] Processing payment request for order ORD-98765
+2025-01-15 14:28:45.156 DEBUG [payment-service] [req-12345] Validating payment method: credit_card
+2025-01-15 14:28:45.189 INFO  [payment-service] [req-12345] Payment validation successful
+2025-01-15 14:28:45.201 DEBUG [payment-service] [req-12345] Connecting to payment gateway
+2025-01-15 14:28:45.234 ERROR [payment-service] [req-12345] Payment gateway timeout: Connection timeout after 30s
+2025-01-15 14:28:45.235 WARN  [payment-service] [req-12345] Retrying payment gateway connection (attempt 1/3)
+2025-01-15 14:28:50.567 ERROR [payment-service] [req-12345] Payment gateway timeout: Connection timeout after 30s
+2025-01-15 14:28:50.568 WARN  [payment-service] [req-12345] Retrying payment gateway connection (attempt 2/3)
+2025-01-15 14:28:55.890 ERROR [payment-service] [req-12345] Payment gateway timeout: Connection timeout after 30s
+2025-01-15 14:28:55.891 ERROR [payment-service] [req-12345] Payment failed after 3 attempts
+2025-01-15 14:28:55.892 INFO  [payment-service] [req-12345] Sending failure notification to order service
+2025-01-15 14:29:01.123 INFO  [payment-service] [req-12346] Processing payment request for order ORD-98766
+2025-01-15 14:29:01.156 DEBUG [payment-service] [req-12346] Validating payment method: debit_card
+2025-01-15 14:29:01.189 INFO  [payment-service] [req-12346] Payment validation successful
+2025-01-15 14:29:01.201 DEBUG [payment-service] [req-12346] Connecting to payment gateway
+2025-01-15 14:29:01.456 INFO  [payment-service] [req-12346] Payment processed successfully: txn-789456
+2025-01-15 14:29:01.457 INFO  [payment-service] [req-12346] Sending confirmation to order service
+2025-01-15 14:29:15.789 ERROR [payment-service] [req-12347] Database connection refused: Could not connect to payment_db
+2025-01-15 14:29:15.790 ERROR [payment-service] [req-12347] Payment request failed: Database unavailable
+2025-01-15 14:29:20.123 ERROR [payment-service] [req-12348] Database connection refused: Could not connect to payment_db
+2025-01-15 14:29:25.456 ERROR [payment-service] [req-12349] Database connection refused: Could not connect to payment_db
+2025-01-15 14:29:30.789 INFO  [payment-service] Database connection restored
+2025-01-15 14:29:31.012 INFO  [payment-service] [req-12350] Processing payment request for order ORD-98767
+2025-01-15 14:29:31.123 INFO  [payment-service] [req-12350] Payment processed successfully: txn-789457
+2025-01-15 14:30:00.000 INFO  [payment-service] Health check: OK - Processed 156 payments in last minute
+2025-01-15 14:30:05.234 WARN  [payment-service] [req-12351] Payment amount exceeds daily limit for user USR-456
+2025-01-15 14:30:05.235 INFO  [payment-service] [req-12351] Fraud check initiated for suspicious transaction
+2025-01-15 14:30:07.890 INFO  [payment-service] [req-12351] Fraud check passed: Transaction approved
+2025-01-15 14:30:07.891 INFO  [payment-service] [req-12351] Payment processed successfully: txn-789458

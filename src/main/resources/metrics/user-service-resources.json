@@ -1,0 +1,55 @@
+{
+  "query": "cpu:usage",
+  "time_range": "15m",
+  "timestamp": "2025-01-15T14:30:00Z",
+  "metrics": {
+    "cpu_utilization": {
+      "current": 78.5,
+      "peak_15min": 89.2,
+      "average_15min": 72.1,
+      "threshold": 70.0,
+      "status": "high",
+      "unit": "percentage"
+    },
+    "memory_utilization": {
+      "heap_used": 85.3,
+      "heap_max": 92.1,
+      "non_heap_used": 45.7,
+      "gc_pressure": "elevated",
+      "unit": "percentage"
+    },
+    "garbage_collection": {
+      "young_gen_collections": 156,
+      "old_gen_collections": 12,
+      "total_gc_time": 2.3,
+      "gc_frequency": "elevated",
+      "longest_pause": 450,
+      "unit_time": "seconds",
+      "unit_pause": "ms"
+    },
+    "thread_pool": {
+      "active_threads": 47,
+      "max_threads": 50,
+      "queued_tasks": 234,
+      "rejected_tasks": 12,
+      "pool_utilization": 94.0,
+      "status": "near_capacity"
+    },
+    "disk_io": {
+      "read_ops_per_sec": 1250,
+      "write_ops_per_sec": 890,
+      "io_wait_percentage": 15.3,
+      "status": "moderate"
+    },
+    "alerts": [
+      "CPU usage above 70% threshold for 8 minutes",
+      "Memory usage approaching heap limits",
+      "Thread pool utilization critical"
+    ],
+    "recommendations": [
+      "Consider horizontal scaling",
+      "Optimize database queries to reduce CPU load",
+      "Increase heap size or tune GC parameters"
+    ]
+  }
+}

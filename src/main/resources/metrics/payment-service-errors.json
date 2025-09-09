@@ -1,0 +1,35 @@
+{
+  "query": "errors:rate5m",
+  "time_range": "1h",
+  "timestamp": "2025-01-15T14:30:00Z",
+  "metrics": {
+    "error_rate": {
+      "current": 15.3,
+      "previous_hour": 2.1,
+      "threshold": 5.0,
+      "status": "elevated"
+    },
+    "error_count": {
+      "total": 342,
+      "by_type": {
+        "connection_timeout": 156,
+        "database_error": 89,
+        "payment_gateway_error": 67,
+        "validation_error": 30
+      }
+    },
+    "error_spike": {
+      "detected": true,
+      "time_window": "14:28-14:31",
+      "peak_rate": 28.7,
+      "primary_cause": "database connectivity issues"
+    },
+    "affected_services": ["payment-service", "order-service"],
+    "recovery_time": "14:31:30Z",
+    "impact": {
+      "failed_requests": 342,
+      "affected_users": 89,
+      "estimated_revenue_loss": "$12,450"
+    }
+  }
+}

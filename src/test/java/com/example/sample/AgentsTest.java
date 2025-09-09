@@ -92,7 +92,7 @@ public class AgentsTest extends TestKitSupport {
                 .forAgent()
                 .inSession(java.util.UUID.randomUUID().toString())
                 .method(RemediationAgent::remediate)
-                .invoke(new RemediationAgent.Request("inc", "{}", "{}", "triage"));
+                .invoke(new RemediationAgent.Request("inc", "{}", "{}", "triage", null));
         assertThat(res.toLowerCase()).contains("plan");
     }
 
