@@ -241,4 +241,53 @@ public class AgentUtils {
         
         return response.trim();
     }
+
+    /**
+     * Extract logs and metrics sections from an EvidenceAgent response.
+     * Supports multiple formats:
+     * - { "evidence_summary": { "logs": {...}, "metrics": {...} } }
+     * - { "logs": "...", "metrics": "..." }
+     * - Any JSON where "logs"/"metrics" exist at top level or nested under evidence_summary.
+     * Returns a String[2] = {logsJsonOrText, metricsJsonOrText}. Values may be null if absent.
+     */
+    public static String[] extractLogsAndMetrics(String evidenceResponse) {
+        String logs = null;
+        String metrics = null;
+
+        if (evidenceResponse == null || evidenceResponse.isBlank()) {
+            return new String[] { null, null };
+        }
+
+        try {
+            JsonNode node = objectMapper.readTree(evidenceResponse);
+
+            // Prefer evidence_summary.logs/metrics if present
+            JsonNode summary = node.get("evidence_summary");
+            if (summary != null && summary.isObject()) {
+                if (summary.has("logs")) {
+                    JsonNode logsNode = summary.get("logs");
+                    logs = logsNode.isTextual() ? logsNode.asText() : logsNode.toString();
+                }
+                if (summary.has("metrics")) {
+                    JsonNode metricsNode = summary.get("metrics");
+                    metrics = metricsNode.isTextual() ? metricsNode.asText() : metricsNode.toString();
+                }
+            }
+
+            // Fallback to top-level fields
+            if (logs == null && node.has("logs")) {
+                JsonNode logsNode = node.get("logs");
+                logs = logsNode.isTextual() ? logsNode.asText() : logsNode.toString();
+            }
+            if (metrics == null && node.has("metrics")) {
+                JsonNode metricsNode = node.get("metrics");
+                metrics = metricsNode.isTextual() ? metricsNode.asText() : metricsNode.toString();
+            }
+
+            return new String[] { logs, metrics };
+        } catch (Exception ignored) {
+            // Not JSON; can't split — return both nulls to let caller decide fallback
+            return new String[] { null, null };
+        }
+    }
 }

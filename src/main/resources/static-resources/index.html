@@ -408,6 +408,28 @@
             margin-top: 8px;
         }
 
+        /* Step icons */
+        .workflow-progress { align-items: stretch; }
+        .step { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .step-icon {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            background: #ffffff; border: 2px solid #e9ecef; color: #6c757d;
+            font-size: 18px; font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .step.active .step-icon { background: #667eea; border-color: #667eea; color: #fff; }
+        .step.completed .step-icon { background: #28a745; border-color: #28a745; color: #fff; }
+
+        /* Collapsible agent cards */
+        .agent-card.collapsed .agent-content { display: none; }
+        .agent-card .collapse-btn {
+            background: transparent; border: none; color: inherit;
+            cursor: pointer; font-size: 18px; line-height: 1;
+        }
+        .agent-card.collapsed .collapse-btn { transform: rotate(-90deg); }
+
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -418,6 +440,79 @@
                 border-bottom: 1px solid #e9ecef;
             }
         }
+
+        /* Professional polish additions */
+        .toolbar {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.6);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .agent-status {
+            background: rgba(0,0,0,0.06);
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+        .btn-copy {
+            float: right;
+            background: #e9edf8;
+            color: #2c3e50;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .metrics { position: sticky; top: 10px; }
+
+        /* Dark theme (opt-in via data attribute) */
+        body[data-theme="dark"] { background: linear-gradient(135deg, #121826 0%, #0b0f1a 100%) !important; color: #e5ecf6; }
+        body[data-theme="dark"] .container { background: #0f1420; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        body[data-theme="dark"] .input-section { background: #0b101a; border-color: #1b2233; }
+        body[data-theme="dark"] .workflow-progress { background: #0b101a; }
+        body[data-theme="dark"] .agent-card { border-color: #1b2233; background: #0f1420; }
+        body[data-theme="dark"] .agent-header { background: #0b101a; border-color: #1b2233; }
+        body[data-theme="dark"] .code-block { background: #0b101a; border-color: #1b2233; color: #e5ecf6; }
+        body[data-theme="dark"] .demo-scenarios { background: #0b101a; }
+        body[data-theme="dark"] .scenario-btn { background: #0f1420; color: #e5ecf6; border-color: #1b2233; }
+        body[data-theme="dark"] .scenario-btn:hover { background: #1b2233; }
+        body[data-theme="dark"] .metric-card { background: #0b101a; }
+        body[data-theme="dark"] .timeline-entry { background: #0f1420; border-left-color: #1b2233; }
+        
+        /* Theme variables and professional palette overrides */
+        :root {
+            --bg-start: #f4f7fb;
+            --bg-end: #edf2f7;
+            --panel: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --primary-2: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: #e5e7eb;
+        }
+        body { background: radial-gradient(60% 100% at 50% 0%, var(--bg-start) 0%, var(--bg-end) 100%) !important; color: var(--text); }
+        .container { background: var(--panel); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%); }
+        .step.active { background: var(--primary); }
+        .step.completed { background: var(--success); }
+        .agent-card { border-color: var(--border); }
+        .agent-header { border-color: var(--border); }
+        .code-block { border-color: var(--border); }
+        .metric-value { color: var(--primary); }
+        .timeline-entry { border-left-color: var(--border); }
     </style>
 </head>
 <body>
@@ -425,6 +520,11 @@
         <div class="header">
             <h1>Akka AI Agent Triage System</h1>
             <p>Intelligent Multi-Agent Incident Response Workflow</p>
+            <div class="toolbar">
+                <button class="btn-secondary" id="themeToggle">🌗 Toggle Theme</button>
+                <button class="btn-secondary" id="restartBtn">🔄 Restart</button>
+                <button class="btn-secondary" id="exportTopBtn">📄 Export</button>
+            </div>
         </div>
 
         <div class="main-content">
@@ -480,30 +580,37 @@
             <div class="workflow-section">
                 <div class="workflow-progress" id="workflowProgress">
                     <div class="step" data-step="classify">
+                        <div class="step-icon">🧭</div>
                         <div class="step-title">Classify</div>
                         <div class="step-desc">Analyze & categorize incident</div>
                     </div>
                     <div class="step" data-step="evidence">
+                        <div class="step-icon">📊</div>
                         <div class="step-title">Evidence</div>
                         <div class="step-desc">Gather logs & metrics</div>
                     </div>
                     <div class="step" data-step="triage">
+                        <div class="step-icon">🔬</div>
                         <div class="step-title">Triage</div>
                         <div class="step-desc">Root cause analysis</div>
                     </div>
                     <div class="step" data-step="knowledge">
+                        <div class="step-icon">🧠</div>
                         <div class="step-title">Knowledge</div>
                         <div class="step-desc">Search runbooks & docs</div>
                     </div>
                     <div class="step" data-step="remediate">
+                        <div class="step-icon">🛠️</div>
                         <div class="step-title">Remediate</div>
                         <div class="step-desc">Plan solutions</div>
                     </div>
                     <div class="step" data-step="summarize">
+                        <div class="step-icon">📝</div>
                         <div class="step-title">Summarize</div>
                         <div class="step-desc">Create communications</div>
                     </div>
                     <div class="step" data-step="complete">
+                        <div class="step-icon">✅</div>
                         <div class="step-title">Complete</div>
                         <div class="step-desc">Workflow finished</div>
                     </div>
@@ -521,7 +628,10 @@
                     <div class="agent-card" id="classifier-card">
                         <div class="agent-header">
                             <div class="agent-name">Classifier Agent</div>
-                            <div class="agent-status">Waiting...</div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div class="agent-status">Waiting...</div>
+                                <button class="collapse-btn" title="Collapse/Expand">▾</button>
+                            </div>
                         </div>
                         <div class="agent-content">
                             <div class="input-output">
@@ -538,7 +648,10 @@
                     <div class="agent-card" id="evidence-card">
                         <div class="agent-header">
                             <div class="agent-name">Evidence Agent</div>
-                            <div class="agent-status">Waiting...</div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div class="agent-status">Waiting...</div>
+                                <button class="collapse-btn" title="Collapse/Expand">▾</button>
+                            </div>
                         </div>
                         <div class="agent-content">
                             <div class="input-output">
@@ -555,7 +668,10 @@
                     <div class="agent-card" id="triage-card">
                         <div class="agent-header">
                             <div class="agent-name">Triage Agent</div>
-                            <div class="agent-status">Waiting...</div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div class="agent-status">Waiting...</div>
+                                <button class="collapse-btn" title="Collapse/Expand">▾</button>
+                            </div>
                         </div>
                         <div class="agent-content">
                             <div class="input-output">
@@ -572,7 +688,10 @@
                     <div class="agent-card" id="knowledge-card">
                         <div class="agent-header">
                             <div class="agent-name">Knowledge Base Agent</div>
-                            <div class="agent-status">Waiting...</div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div class="agent-status">Waiting...</div>
+                                <button class="collapse-btn" title="Collapse/Expand">▾</button>
+                            </div>
                         </div>
                         <div class="agent-content">
                             <div class="input-output">
@@ -589,7 +708,10 @@
                     <div class="agent-card" id="remediation-card">
                         <div class="agent-header">
                             <div class="agent-name">Remediation Agent</div>
-                            <div class="agent-status">Waiting...</div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div class="agent-status">Waiting...</div>
+                                <button class="collapse-btn" title="Collapse/Expand">▾</button>
+                            </div>
                         </div>
                         <div class="agent-content">
                             <div class="input-output">
@@ -606,7 +728,10 @@
                     <div class="agent-card" id="summary-card">
                         <div class="agent-header">
                             <div class="agent-name">Summary Agent</div>
-                            <div class="agent-status">Waiting...</div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div class="agent-status">Waiting...</div>
+                                <button class="collapse-btn" title="Collapse/Expand">▾</button>
+                            </div>
                         </div>
                         <div class="agent-content">
                             <div class="input-output">
@@ -728,7 +853,67 @@ Monitoring:
             
             // Load default scenario
             loadScenario('payment-outage');
+
+            // Attach copy buttons to all code blocks
+            try {
+                document.querySelectorAll('.input-output').forEach(section => {
+                    const title = section.querySelector('h4');
+                    const block = section.querySelector('.code-block');
+                    if (title && block) {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn-copy';
+                        btn.textContent = 'Copy';
+                        btn.addEventListener('click', () => {
+                            navigator.clipboard.writeText(block.textContent || '');
+                            showSuccess('Copied to clipboard');
+                        });
+                        title.appendChild(btn);
+                    }
+                });
+            } catch (e) { console.warn('Copy buttons init failed', e); }
+            
+            // Toolbar buttons
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                const isDark = document.body.getAttribute('data-theme') === 'dark';
+                document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            });
+            document.getElementById('restartBtn').addEventListener('click', () => restartWorkflow());
+            document.getElementById('exportTopBtn').addEventListener('click', () => exportResults());
+
+            // Collapsible cards
+            document.querySelectorAll('.agent-card .collapse-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const card = e.target.closest('.agent-card');
+                    if (card) card.classList.toggle('collapsed');
+                });
+            });
+            // Allow clicking header to collapse/expand
+            document.querySelectorAll('.agent-card .agent-header').forEach(h => {
+                h.addEventListener('dblclick', (e) => {
+                    const card = e.currentTarget.closest('.agent-card');
+                    if (card) card.classList.toggle('collapsed');
+                });
+            });
+
+            // Start with cards collapsed by default
+            document.querySelectorAll('.agent-card').forEach(card => card.classList.add('collapsed'));
         });
+
+        // Restart workflow UI
+        function restartWorkflow() {
+            resetUI();
+            document.getElementById('incident').value = '';
+            document.getElementById('triageId').value = '';
+            resetAgentCards();
+            resetWorkflowProgress();
+            document.getElementById('metricsPanel').style.display = 'none';
+            document.getElementById('currentSeverity').textContent = '-';
+            document.getElementById('completedSteps').textContent = '0/7';
+            document.getElementById('totalTime').textContent = '0s';
+            document.getElementById('conversationTimeline').style.display = 'none';
+            startTime = null;
+            currentTriageId = null;
+        }
 
         // Form submission
         document.getElementById('triageForm').addEventListener('submit', async function(e) {
@@ -796,7 +981,7 @@ Monitoring:
             agents.forEach(agent => {
                 const card = document.getElementById(`${agent}-card`);
                 const status = card.querySelector('.agent-status');
-                card.className = 'agent-card';
+                card.className = 'agent-card collapsed';
                 status.textContent = 'Waiting...';
                 
                 document.getElementById(`${agent}-input`).textContent = 'Waiting...';
@@ -893,36 +1078,42 @@ Monitoring:
                         completedSteps.push('classify');
                         updateStepStatus('classify', 'completed');
                         updateAgentStatus('classifier', 'completed', `Completed at ${timestamp}`);
+                        expandCard('classifier');
                         if (!completedSteps.includes('evidence')) currentStep = 'evidence';
                         lastProgressTime = Date.now();
                     } else if (content.includes('evidence analysis completed')) {
                         completedSteps.push('evidence');
                         updateStepStatus('evidence', 'completed');
                         updateAgentStatus('evidence', 'completed', `Completed at ${timestamp}`);
+                        expandCard('evidence');
                         if (!completedSteps.includes('triage')) currentStep = 'triage';
                         lastProgressTime = Date.now();
                     } else if (content.includes('triage analysis completed')) {
                         completedSteps.push('triage');
                         updateStepStatus('triage', 'completed');
                         updateAgentStatus('triage', 'completed', `Completed at ${timestamp}`);
+                        expandCard('triage');
                         if (!completedSteps.includes('knowledge')) currentStep = 'knowledge';
                         lastProgressTime = Date.now();
                     } else if (content.includes('knowledge base search completed.')) {
                         completedSteps.push('knowledge');
                         updateStepStatus('knowledge', 'completed');
                         updateAgentStatus('knowledge', 'completed', `Completed at ${timestamp}`);
+                        expandCard('knowledge');
                         if (!completedSteps.includes('remediate')) currentStep = 'remediate';
                         lastProgressTime = Date.now();
                     } else if (content.includes('remediation plan completed')) {
                         completedSteps.push('remediate');
                         updateStepStatus('remediate', 'completed');
                         updateAgentStatus('remediation', 'completed', `Completed at ${timestamp}`);
+                        expandCard('remediation');
                         if (!completedSteps.includes('summarize')) currentStep = 'summarize';
                         lastProgressTime = Date.now();
                     } else if (content.includes('summaries completed')) {
                         completedSteps.push('summarize');
                         updateStepStatus('summarize', 'completed');
                         updateAgentStatus('summary', 'completed', `Completed at ${timestamp}`);
+                        expandCard('summary');
                         currentStep = 'complete';
                         lastProgressTime = Date.now();
                     } else if (content.includes('workflow completed')) {
@@ -947,6 +1138,7 @@ Monitoring:
                 };
                 if (agentMap[currentStep]) {
                     updateAgentStatus(agentMap[currentStep], 'active', 'Processing...');
+                    expandCard(agentMap[currentStep]);
                 }
             }
 
@@ -965,6 +1157,7 @@ Monitoring:
                 document.getElementById('classifier-output').textContent = 
                     formatJSON(state.classificationJson);
                 updateAgentStatus('classifier', 'completed', 'Classification completed');
+                expandCard('classifier');
                 
                 // Extract severity for metrics
                 try {
@@ -988,6 +1181,7 @@ Monitoring:
                 document.getElementById('evidence-output').textContent = 
                     formatJSON(state.evidenceLogs);
                 updateAgentStatus('evidence', 'completed', 'Evidence gathered');
+                expandCard('evidence');
             }
 
             // Update triage
@@ -997,6 +1191,7 @@ Monitoring:
                 document.getElementById('triage-output').textContent = 
                     formatJSON(state.triageText);
                 updateAgentStatus('triage', 'completed', 'Triage completed');
+                expandCard('triage');
             }
 
             // Update knowledge base
@@ -1006,6 +1201,7 @@ Monitoring:
                 document.getElementById('knowledge-output').textContent = 
                     formatJSON(state.knowledgeBaseResult);
                 updateAgentStatus('knowledge', 'completed', 'Knowledge base search completed');
+                expandCard('knowledge');
             }
 
             // Update remediation
@@ -1015,6 +1211,7 @@ Monitoring:
                 document.getElementById('remediation-output').textContent = 
                     formatJSON(state.remediationText);
                 updateAgentStatus('remediation', 'completed', 'Remediation planned');
+                expandCard('remediation');
             }
 
             // Update summary
@@ -1024,6 +1221,7 @@ Monitoring:
                 document.getElementById('summary-output').textContent = 
                     formatJSON(state.summaryText);
                 updateAgentStatus('summary', 'completed', 'Summary completed');
+                expandCard('summary');
             }
 
             // Update status based on workflow state
@@ -1063,7 +1261,7 @@ Monitoring:
                 return JSON.stringify(parsed, null, 2);
             } catch (e) {
                 // Not valid JSON, return as-is but truncated
-                return text.length > 1000 ? text.substring(0, 1000) + '\n...[truncated]' : text;
+                return text.length > 5000 ? text.substring(0, 5000) + '\n...[truncated]' : text;
             }
         }
 
@@ -1086,6 +1284,16 @@ Monitoring:
             if (status === 'active') {
                 statusEl.innerHTML = '<div class="loading"><div class="spinner"></div>' + message + '</div>';
             }
+        }
+
+        // Helpers to control card collapse state
+        function expandCard(agentName) {
+            const card = document.getElementById(`${agentName}-card`);
+            if (card) card.classList.remove('collapsed');
+        }
+        function collapseCard(agentName) {
+            const card = document.getElementById(`${agentName}-card`);
+            if (card) card.classList.add('collapsed');
         }
 
         // Update metrics

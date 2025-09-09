@@ -1,0 +1,15 @@
+2025-01-15T09:00:00Z INFO  auth-service v1.14.0 starting up (instance: auth-1)
+2025-01-15T09:05:12Z WARN  [auth-service] [req-a1] Redis connection timeout (primary: redis-primary:6379)
+2025-01-15T09:05:12Z ERROR [auth-service] [req-a1] Session store unavailable: CONNECTION_TIMEOUT
+2025-01-15T09:06:45Z INFO  [auth-service] [req-a2] Login attempt user=jane@example.com
+2025-01-15T09:06:45Z ERROR [auth-service] [req-a2] Token validation failed: JWKS key not found (kid=abc123)
+2025-01-15T09:06:45Z WARN  [auth-service] [req-a2] Returning 401 INVALID_CREDENTIALS
+2025-01-15T09:07:01Z INFO  [auth-service] [req-a3] Login attempt user=mark@example.com
+2025-01-15T09:07:01Z ERROR [auth-service] [req-a3] Rate limit exceeded for IP 192.0.2.10 (rl=login)
+2025-01-15T09:07:01Z WARN  [auth-service] [req-a3] Returning 429 RATE_LIMITED
+2025-01-15T09:10:10Z ERROR [auth-service] Redis connection refused (ECONNREFUSED) to redis-primary:6379
+2025-01-15T09:10:10Z WARN  [auth-service] Circuit breaker OPEN for redisSessionStore
+2025-01-15T09:12:34Z INFO  [auth-service] Refreshed JWKS cache (issuer=https://idp.example.com)
+2025-01-15T09:15:00Z INFO  [auth-service] Increased Redis pool size to max=200
+2025-01-15T09:18:22Z INFO  [auth-service] Relaxed rate limit: login=200 req/min
+2025-01-15T09:25:30Z INFO  [auth-service] Health check OK - error_rate=1.2% 401=0.8% 429=0.2%

@@ -1,0 +1,37 @@
+{
+  "query": "db:performance",
+  "time_range": "30m",
+  "timestamp": "2025-01-15T14:30:00Z",
+  "metrics": {
+    "latency_percentiles": {
+      "p95": 650,
+      "p99": 1400,
+      "p99.9": 3200
+    },
+    "average_latency": {
+      "current": 420,
+      "baseline": 180,
+      "status": "elevated"
+    },
+    "slow_queries": {
+      "count": 57,
+      "top": [
+        "SELECT * FROM orders o JOIN order_items i ...",
+        "UPDATE users SET last_login = NOW() WHERE id = ?"
+      ]
+    },
+    "cpu_utilization": {
+      "current": 82.0,
+      "peak_15min": 91.3,
+      "status": "high"
+    },
+    "io_wait": {
+      "current": 37.5,
+      "status": "critical"
+    },
+    "alerts": [
+      "ALERT DBSlowQueriesHigh fired at 14:28Z",
+      "ALERT DBIOWaitHigh fired at 14:29Z"
+    ]
+  }
+}

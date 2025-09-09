@@ -57,12 +57,13 @@ public class TriageWorkflow extends Workflow<TriageState> {
             String evidenceMetrics,
             String triageText,
             String remediationText,
-            String summaryText
+            String summaryText,
+            String knowledgeBaseResult
     ) {}
 
     public ReadOnlyEffect<StateView> getState() {
         var s = currentState();
-        if (s == null) return effects().reply(new StateView("EMPTY", null, null, null, null, null, null, null));
+        if (s == null) return effects().reply(new StateView("EMPTY", null, null, null, null, null, null, null, null));
         return effects().reply(new StateView(
                 s.status().name(),
                 s.incident(),
@@ -71,7 +72,8 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 s.evidenceMetrics(),
                 s.triageText(),
                 s.remediationText(),
-                s.summaryText()
+                s.summaryText(),
+                s.knowledgeBaseResult()
         ));
     }
 
@@ -151,6 +153,15 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     List<String> keyFindings = AgentUtils.extractKeyFindings(evidenceResult);
                     double dataQuality = AgentUtils.extractConfidenceScore(evidenceResult, "data_quality");
                     
+                    // Split logs and metrics if available
+                    String[] parts = AgentUtils.extractLogsAndMetrics(evidenceResult);
+                    String logs = parts[0];
+                    String metrics = parts[1];
+                    // Fallback: if parsing failed, store the whole evidence once (in logs)
+                    if (logs == null && metrics == null) {
+                        logs = evidenceResult;
+                    }
+                    
                     String conversationEntry = String.format(
                         "[%s] Evidence analysis completed - %d key findings identified, Data quality: %.1f",
                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME),
@@ -168,7 +179,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     
                     return effects()
                             .updateState(currentState()
-                                    .withEvidence(evidenceResult, evidenceResult)
+                                    .withEvidence(logs, metrics)
                                     .addConversation(new Conversation("assistant", conversationEntry))
                                     .withStatus(TriageState.Status.EVIDENCE_COLLECTED))
                             .transitionTo("triage");

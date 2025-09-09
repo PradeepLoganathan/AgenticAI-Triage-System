@@ -1,0 +1,31 @@
+{
+  "query": "errors:rate5m",
+  "time_range": "1h",
+  "timestamp": "2025-01-15T09:20:00Z",
+  "metrics": {
+    "error_rate": {
+      "current": 6.8,
+      "previous_hour": 1.1,
+      "threshold": 3.0,
+      "status": "elevated"
+    },
+    "error_count": {
+      "total": 189,
+      "by_type": {
+        "invalid_credentials_401": 88,
+        "rate_limited_429": 61,
+        "redis_timeout": 40
+      }
+    },
+    "error_spike": {
+      "detected": true,
+      "time_window": "09:05-09:15",
+      "peak_rate": 14.2,
+      "primary_cause": "redis connection timeouts and jwks cache staleness"
+    },
+    "alerts": [
+      "ALERT RedisConnectionErrors auth-service at 09:10Z",
+      "ALERT AuthLoginErrorRateHigh at 09:12Z"
+    ]
+  }
+}
