@@ -423,7 +423,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 Akka AI Agent Triage System</h1>
+            <h1>Akka AI Agent Triage System</h1>
             <p>Intelligent Multi-Agent Incident Response Workflow</p>
         </div>
 
@@ -432,16 +432,16 @@
                 <div class="demo-scenarios">
                     <h3>Demo Scenarios</h3>
                     <button class="scenario-btn" onclick="loadScenario('payment-outage')">
-                        💳 Payment Service Outage (P1)
+                        Payment Service Outage (P1)
                     </button>
                     <button class="scenario-btn" onclick="loadScenario('database-slow')">
-                        🗄️ Database Performance Degradation (P2)
+                        Database Performance Degradation (P2)
                     </button>
                     <button class="scenario-btn" onclick="loadScenario('auth-errors')">
-                        🔐 Authentication Service Errors (P2)
+                        Authentication Service Errors (P2)
                     </button>
                     <button class="scenario-btn" onclick="loadScenario('deployment-issue')">
-                        🚀 Post-Deployment Issues (P3)
+                        Post-Deployment Issues (P3)
                     </button>
                 </div>
 
@@ -457,7 +457,7 @@
                     </div>
 
                     <button type="submit" class="btn-primary" id="startBtn">
-                        🚀 Start Triage Workflow
+                        Start Triage Workflow
                     </button>
                 </form>
 
@@ -467,7 +467,7 @@
                         <div class="metric-label">Total Time</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value" id="completedSteps">0/6</div>
+                        <div class="metric-value" id="completedSteps">0/7</div>
                         <div class="metric-label">Completed Steps</div>
                     </div>
                     <div class="metric-card">
@@ -490,6 +490,10 @@
                     <div class="step" data-step="triage">
                         <div class="step-title">Triage</div>
                         <div class="step-desc">Root cause analysis</div>
+                    </div>
+                    <div class="step" data-step="knowledge">
+                        <div class="step-title">Knowledge</div>
+                        <div class="step-desc">Search runbooks & docs</div>
                     </div>
                     <div class="step" data-step="remediate">
                         <div class="step-title">Remediate</div>
@@ -516,7 +520,7 @@
                 <div class="agent-cards" id="agentCards">
                     <div class="agent-card" id="classifier-card">
                         <div class="agent-header">
-                            <div class="agent-name">🎯 Classifier Agent</div>
+                            <div class="agent-name">Classifier Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -533,7 +537,7 @@
 
                     <div class="agent-card" id="evidence-card">
                         <div class="agent-header">
-                            <div class="agent-name">🔍 Evidence Agent</div>
+                            <div class="agent-name">Evidence Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -550,7 +554,7 @@
 
                     <div class="agent-card" id="triage-card">
                         <div class="agent-header">
-                            <div class="agent-name">🧠 Triage Agent</div>
+                            <div class="agent-name">Triage Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -565,9 +569,26 @@
                         </div>
                     </div>
 
+                    <div class="agent-card" id="knowledge-card">
+                        <div class="agent-header">
+                            <div class="agent-name">Knowledge Base Agent</div>
+                            <div class="agent-status">Waiting...</div>
+                        </div>
+                        <div class="agent-content">
+                            <div class="input-output">
+                                <h4>Input:</h4>
+                                <div class="code-block" id="knowledge-input">Waiting for triage...</div>
+                            </div>
+                            <div class="input-output">
+                                <h4>Output:</h4>
+                                <div class="code-block" id="knowledge-output">No output yet</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="agent-card" id="remediation-card">
                         <div class="agent-header">
-                            <div class="agent-name">🛠️ Remediation Agent</div>
+                            <div class="agent-name">Remediation Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -584,7 +605,7 @@
 
                     <div class="agent-card" id="summary-card">
                         <div class="agent-header">
-                            <div class="agent-name">📋 Summary Agent</div>
+                            <div class="agent-name">Summary Agent</div>
                             <div class="agent-status">Waiting...</div>
                         </div>
                         <div class="agent-content">
@@ -771,7 +792,7 @@ Monitoring:
 
         // Reset agent cards
         function resetAgentCards() {
-            const agents = ['classifier', 'evidence', 'triage', 'remediation', 'summary'];
+            const agents = ['classifier', 'evidence', 'triage', 'knowledge', 'remediation', 'summary'];
             agents.forEach(agent => {
                 const card = document.getElementById(`${agent}-card`);
                 const status = card.querySelector('.agent-status');
@@ -884,6 +905,12 @@ Monitoring:
                         completedSteps.push('triage');
                         updateStepStatus('triage', 'completed');
                         updateAgentStatus('triage', 'completed', `Completed at ${timestamp}`);
+                        if (!completedSteps.includes('knowledge')) currentStep = 'knowledge';
+                        lastProgressTime = Date.now();
+                    } else if (content.includes('knowledge base search completed.')) {
+                        completedSteps.push('knowledge');
+                        updateStepStatus('knowledge', 'completed');
+                        updateAgentStatus('knowledge', 'completed', `Completed at ${timestamp}`);
                         if (!completedSteps.includes('remediate')) currentStep = 'remediate';
                         lastProgressTime = Date.now();
                     } else if (content.includes('remediation plan completed')) {
@@ -914,6 +941,7 @@ Monitoring:
                     'classify': 'classifier',
                     'evidence': 'evidence', 
                     'triage': 'triage',
+                    'knowledge': 'knowledge',
                     'remediate': 'remediation',
                     'summarize': 'summary'
                 };
@@ -971,10 +999,19 @@ Monitoring:
                 updateAgentStatus('triage', 'completed', 'Triage completed');
             }
 
+            // Update knowledge base
+            if (state.knowledgeBaseResult) {
+                document.getElementById('knowledge-input').textContent = 
+                    `Service: ${extractServiceName(state.classificationJson)}\nSearching runbooks and documentation...`;
+                document.getElementById('knowledge-output').textContent = 
+                    formatJSON(state.knowledgeBaseResult);
+                updateAgentStatus('knowledge', 'completed', 'Knowledge base search completed');
+            }
+
             // Update remediation
             if (state.remediationText) {
                 document.getElementById('remediation-input').textContent = 
-                    `All previous context:\n- Incident\n- Classification\n- Evidence\n- Triage Analysis`;
+                    `All previous context:\n- Incident\n- Classification\n- Evidence\n- Triage Analysis\n- Knowledge Base Results`;
                 document.getElementById('remediation-output').textContent = 
                     formatJSON(state.remediationText);
                 updateAgentStatus('remediation', 'completed', 'Remediation planned');
@@ -987,6 +1024,15 @@ Monitoring:
                 document.getElementById('summary-output').textContent = 
                     formatJSON(state.summaryText);
                 updateAgentStatus('summary', 'completed', 'Summary completed');
+            }
+
+            // Update status based on workflow state
+            if (state.status === 'TRIAGED' && !state.knowledgeBaseResult) {
+                updateAgentStatus('knowledge', 'active', 'Searching knowledge base...');
+                updateStepStatus('knowledge', 'active');
+            } else if (state.status === 'KNOWLEDGE_BASE_SEARCHED' && state.knowledgeBaseResult && !document.getElementById('knowledge-card').classList.contains('completed')) {
+                updateAgentStatus('knowledge', 'completed', 'Knowledge base search completed');
+                updateStepStatus('knowledge', 'completed');
             }
 
             // Check if workflow is complete
@@ -1051,7 +1097,7 @@ Monitoring:
 
             // Count completed steps
             const completedSteps = document.querySelectorAll('.step.completed').length;
-            document.getElementById('completedSteps').textContent = `${completedSteps}/6`;
+            document.getElementById('completedSteps').textContent = `${completedSteps}/7`;
         }
 
         // Update conversation timeline
@@ -1108,6 +1154,7 @@ Monitoring:
                     classification: document.getElementById('classifier-output').textContent,
                     evidence: document.getElementById('evidence-output').textContent,
                     triage: document.getElementById('triage-output').textContent,
+                    knowledgeBase: document.getElementById('knowledge-output').textContent,
                     remediation: document.getElementById('remediation-output').textContent,
                     summary: document.getElementById('summary-output').textContent
                 },

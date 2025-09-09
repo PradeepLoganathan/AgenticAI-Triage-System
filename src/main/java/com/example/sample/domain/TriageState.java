@@ -13,10 +13,11 @@ public record TriageState(
         String evidenceMetrics,
         String triageText,
         String remediationText,
-        String summaryText
+        String summaryText,
+        String knowledgeBaseResult
 ) {
 
-    public enum Status { INITIATED, PREPARED, CLASSIFIED, EVIDENCE_COLLECTED, TRIAGED, REMEDIATION_PROPOSED, SUMMARY_READY, COMPLETED }
+    public enum Status { INITIATED, PREPARED, CLASSIFIED, EVIDENCE_COLLECTED, TRIAGED, KNOWLEDGE_BASE_SEARCHED, REMEDIATION_PROPOSED, SUMMARY_READY, COMPLETED }
 
     public static Builder builder() {
         return new Builder();
@@ -64,6 +65,10 @@ public record TriageState(
         return toBuilder().summaryText(txt).build();
     }
 
+    public TriageState withKnowledgeBaseResult(String result) {
+        return toBuilder().knowledgeBaseResult(result).build();
+    }
+
     public static class Builder {
         private String workflowId;
         private List<Conversation> context = new ArrayList<>();
@@ -75,6 +80,7 @@ public record TriageState(
         private String triageText;
         private String remediationText;
         private String summaryText;
+        private String knowledgeBaseResult;
 
         public Builder() {}
 
@@ -89,6 +95,7 @@ public record TriageState(
             this.triageText = state.triageText;
             this.remediationText = state.remediationText;
             this.summaryText = state.summaryText;
+            this.knowledgeBaseResult = state.knowledgeBaseResult;
         }
 
         public Builder workflowId(String workflowId) {
@@ -141,6 +148,11 @@ public record TriageState(
             return this;
         }
 
+        public Builder knowledgeBaseResult(String knowledgeBaseResult) {
+            this.knowledgeBaseResult = knowledgeBaseResult;
+            return this;
+        }
+
         public TriageState build() {
             return new TriageState(
                 workflowId,
@@ -152,7 +164,8 @@ public record TriageState(
                 evidenceMetrics,
                 triageText,
                 remediationText,
-                summaryText
+                summaryText,
+                knowledgeBaseResult
             );
         }
     }

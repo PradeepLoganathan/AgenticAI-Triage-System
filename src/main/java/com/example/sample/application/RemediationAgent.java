@@ -46,7 +46,9 @@ public class RemediationAgent extends Agent {
            - Plan automated and manual validation procedures
            - Design alerting for remediation failures
         
-        Use available tools to validate assumptions and gather additional context.
+        **IMPORTANT**: Before formulating a plan, you MUST use the `search_knowledge_base` tool to find existing runbooks or incident reports related to the service and symptoms. This is critical for creating a safe and effective plan.
+
+        Use other available tools to validate assumptions and gather additional context.
         
         Return comprehensive JSON remediation plan:
         {
@@ -93,7 +95,7 @@ public class RemediationAgent extends Agent {
         }
         """;
 
-    public record Request(String incident, String classificationJson, String evidenceJson, String triageText) {}
+    public record Request(String incident, String classificationJson, String evidenceJson, String triageText, String knowledgeBaseResult) {}
     
     private static final Set<String> HIGH_RISK_KEYWORDS = Set.of(
         "database", "payment", "auth", "user-data", "financial", "security",
@@ -104,6 +106,8 @@ public class RemediationAgent extends Agent {
         "feature-flag", "config-change", "deployment", "routing", "scaling"
     );
 
+    
+
     public Effect<String> remediate(Request req) {
         String contextualPrompt = String.format(
             "REMEDIATION PLANNING REQUEST\n" +
@@ -113,13 +117,15 @@ public class RemediationAgent extends Agent {
             "CLASSIFICATION:\n%s\n\n" +
             "EVIDENCE COLLECTED:\n%s\n\n" +
             "TRIAGE ANALYSIS:\n%s\n\n" +
+            "KNOWLEDGE BASE SEARCH RESULTS:\n%s\n\n" +
             "Please develop a comprehensive, risk-aware remediation plan using the staged framework. " +
             "Use available tools to assess risks and validate your remediation approach.",
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
             req.incident() != null ? req.incident() : "Not provided",
             req.classificationJson() != null ? req.classificationJson() : "Not provided",
             req.evidenceJson() != null ? req.evidenceJson() : "Not provided",
-            req.triageText() != null ? req.triageText() : "Not provided"
+            req.triageText() != null ? req.triageText() : "Not provided",
+            req.knowledgeBaseResult() != null ? req.knowledgeBaseResult() : "Not provided"
         );
 
         return effects()
