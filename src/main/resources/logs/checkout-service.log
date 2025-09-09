@@ -1,0 +1,15 @@
+2025-01-15T14:24:50Z INFO  [checkout-service] v3.8.2 starting (instance: checkout-2)
+2025-01-15T14:25:10Z INFO  [checkout-service] [req-c1] Checkout initiated user=USR-789 cart=3 items
+2025-01-15T14:25:12Z DEBUG [checkout-service] [req-c1] Calculating promotions (ruleset=v2025.01)
+2025-01-15T14:25:14Z INFO  [checkout-service] [req-c1] Creating order ORD-10001
+2025-01-15T14:25:15Z INFO  [checkout-service] [req-c1] Calling payment-service
+2025-01-15T14:25:45Z ERROR [checkout-service] [req-c1] payment-service returned 503 Service Unavailable
+2025-01-15T14:25:45Z WARN  [checkout-service] [req-c1] Retrying payment-service (attempt 1/2)
+2025-01-15T14:26:16Z ERROR [checkout-service] [req-c1] payment-service returned 503 Service Unavailable
+2025-01-15T14:26:16Z ERROR [checkout-service] [req-c1] Checkout failed: PAYMENT_UNAVAILABLE
+2025-01-15T14:27:05Z WARN  [checkout-service] [req-c2] inventory-service timeout (> 2s) fallback=cached
+2025-01-15T14:28:33Z INFO  [checkout-service] [req-c3] Creating order ORD-10002
+2025-01-15T14:28:34Z INFO  [checkout-service] [req-c3] Calling payment-service
+2025-01-15T14:29:05Z ERROR [checkout-service] [req-c3] payment-service returned 503 Service Unavailable
+2025-01-15T14:29:06Z WARN  [checkout-service] [req-c3] payment-service latency elevated P95=890ms
+2025-01-15T14:29:30Z INFO  [checkout-service] Health check: OK - degraded dependencies (payment, inventory)
