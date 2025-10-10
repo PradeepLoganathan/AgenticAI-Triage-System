@@ -27,11 +27,19 @@ public class TriageWorkflow extends Workflow<TriageState> {
     }
 
     public record StartTriage(String incident) {}
+    public record Repeat(String message, int times) {}
 
     public Effect<String> start(StartTriage cmd) {
         logger.info("🚀 STARTING TRIAGE WORKFLOW - Incident: {}", cmd.incident().substring(0, Math.min(100, cmd.incident().length())) + "...");
         
+        // Establish a stable agent session id for the entire workflow to demonstrate
+        // bounded in-session memory behavior across multiple agent calls.
+        String sessionId = UUID.randomUUID().toString();
+
         var init = TriageState.empty()
+                .toBuilder()
+                .workflowId(sessionId)
+                .build()
                 .addConversation(new Conversation("system", "Service triage session started"))
                 .addConversation(new Conversation("user", cmd.incident()))
                 .withIncident(cmd.incident())
@@ -49,6 +57,27 @@ public class TriageWorkflow extends Workflow<TriageState> {
         return effects().reply(ctx.size() > 1 ? ctx.subList(1, ctx.size()) : ctx);
     }
 
+    // Utility command to grow workflow context with demo notes to illustrate
+    // memory/state behavior in the UI. Adds up to 50 repeated entries.
+    public Effect<String> repeat(Repeat cmd) {
+        int n = cmd.times() <= 0 ? 1 : Math.min(50, cmd.times());
+        String msg = (cmd.message() == null || cmd.message().isBlank()) ? "demo note" : cmd.message();
+
+        var s = currentState();
+        if (s == null) {
+            return effects().reply("no-state");
+        }
+
+        var updated = s;
+        for (int i = 1; i <= n; i++) {
+            String entry = String.format("[DEMO] %s (%d/%d)", msg, i, n);
+            updated = updated.addConversation(new Conversation("system", entry));
+        }
+
+        return effects().updateState(updated).pause().thenReply("ok");
+    }
+
+
     public record StateView(
             String status,
             String incident,
@@ -58,12 +87,53 @@ public class TriageWorkflow extends Workflow<TriageState> {
             String triageText,
             String remediationText,
             String summaryText,
-            String knowledgeBaseResult
+            String knowledgeBaseResult,
+            // Memory/state visibility additions
+            String agentSessionId,
+            int contextEntries,
+            long approxStateChars,
+            long heapUsedBytes,
+            long heapCommittedBytes,
+            long heapMaxBytes,
+            String agentMemoryMode
     ) {}
 
     public ReadOnlyEffect<StateView> getState() {
         var s = currentState();
-        if (s == null) return effects().reply(new StateView("EMPTY", null, null, null, null, null, null, null, null));
+        if (s == null) {
+            var rt = Runtime.getRuntime();
+            return effects().reply(new StateView(
+                    "EMPTY", null, null, null, null, null, null, null, null,
+                    null, 0, 0L,
+                    rt.totalMemory() - rt.freeMemory(),
+                    rt.totalMemory(),
+                    rt.maxMemory(),
+                    "LIMITED_WINDOW"
+            ));
+        }
+
+        long approxChars = 0;
+        if (s.incident() != null) approxChars += s.incident().length();
+        if (s.classificationJson() != null) approxChars += s.classificationJson().length();
+        if (s.evidenceLogs() != null) approxChars += s.evidenceLogs().length();
+        if (s.evidenceMetrics() != null) approxChars += s.evidenceMetrics().length();
+        if (s.triageText() != null) approxChars += s.triageText().length();
+        if (s.remediationText() != null) approxChars += s.remediationText().length();
+        if (s.summaryText() != null) approxChars += s.summaryText().length();
+        if (s.knowledgeBaseResult() != null) approxChars += s.knowledgeBaseResult().length();
+        int ctxSize = s.context() == null ? 0 : s.context().size();
+        if (s.context() != null) {
+            for (var c : s.context()) {
+                if (c != null && c.content() != null) approxChars += c.content().length();
+                if (c != null && c.role() != null) approxChars += c.role().length();
+            }
+        }
+
+        var rt = Runtime.getRuntime();
+        long used = rt.totalMemory() - rt.freeMemory();
+        long committed = rt.totalMemory();
+        long max = rt.maxMemory();
+
         return effects().reply(new StateView(
                 s.status().name(),
                 s.incident(),
@@ -73,7 +143,14 @@ public class TriageWorkflow extends Workflow<TriageState> {
                 s.triageText(),
                 s.remediationText(),
                 s.summaryText(),
-                s.knowledgeBaseResult()
+                s.knowledgeBaseResult(),
+                s.workflowId(),
+                ctxSize,
+                approxChars,
+                used,
+                committed,
+                max,
+                "LIMITED_WINDOW"
         ));
     }
 
@@ -99,7 +176,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     return CompletableFuture.supplyAsync(() ->
                             componentClient
                                     .forAgent()
-                                    .inSession(UUID.randomUUID().toString())
+                                    .inSession(currentState().workflowId())
                                     .method(ClassifierAgent::classify)
                                     .invoke(new ClassifierAgent.Request(cmd.incident())));
                 })
@@ -144,7 +221,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     
                     return componentClient
                             .forAgent()
-                            .inSession(UUID.randomUUID().toString())
+                            .inSession(currentState().workflowId())
                             .method(EvidenceAgent::gather)
                             .invoke(new EvidenceAgent.Request(service, metricsExpr, timeRange));
                 }))
@@ -209,7 +286,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     
                     return componentClient
                             .forAgent()
-                            .inSession(UUID.randomUUID().toString())
+                            .inSession(currentState().workflowId())
                             .method(TriageAgent::triage)
                             .invoke(new TriageAgent.Request(enrichedContext));
                 }))
@@ -246,7 +323,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     String service = AgentUtils.extractServiceFromClassification(currentState().classificationJson());
                     return componentClient
                             .forAgent()
-                            .inSession(UUID.randomUUID().toString())
+                            .inSession(currentState().workflowId())
                             .method(KnowledgeBaseAgent::search)
                             .invoke(service);
                 }))
@@ -273,7 +350,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     
                     return componentClient
                             .forAgent()
-                            .inSession(UUID.randomUUID().toString())
+                            .inSession(currentState().workflowId())
                             .method(RemediationAgent::remediate)
                             .invoke(new RemediationAgent.Request(
                                     currentState().incident(),
@@ -317,7 +394,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                     
                     return componentClient
                             .forAgent()
-                            .inSession(UUID.randomUUID().toString())
+                            .inSession(currentState().workflowId())
                             .method(SummaryAgent::summarize)
                             .invoke(new SummaryAgent.Request(
                                     currentState().incident(),
@@ -342,6 +419,10 @@ public class TriageWorkflow extends Workflow<TriageState> {
                             .transitionTo("finalize");
                 });
     }
+
+    // Note: Reset and memory ping helpers were removed here to keep API within
+    // the supported Workflow effect methods. Memory/session visibility is
+    // exposed via getState(); agent session reuse happens in all steps.
 
     private Step finalizeStep() {
         return step("finalize")

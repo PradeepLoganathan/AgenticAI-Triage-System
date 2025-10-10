@@ -20,6 +20,7 @@ public class TriageEndpoint {
     }
 
     public record StartRequest(String incident) {}
+    public record RepeatRequest(String message, int times) {}
 
     @Post
     public HttpResponse start(String triageId, StartRequest req) {
@@ -44,4 +45,15 @@ public class TriageEndpoint {
                 .invoke();
         return HttpResponses.ok(res);
     }
+
+    @Post("/repeat")
+    public HttpResponse repeat(String triageId, RepeatRequest req) {
+        var res = client.forWorkflow(triageId)
+                .method(TriageWorkflow::repeat)
+                .invoke(new TriageWorkflow.Repeat(req.message(), req.times()));
+        return HttpResponses.ok(res);
+    }
+
+    // Removed reset/memory ping endpoints to keep API aligned with supported
+    // Workflow effect methods. Memory/session visibility is via /state.
 }

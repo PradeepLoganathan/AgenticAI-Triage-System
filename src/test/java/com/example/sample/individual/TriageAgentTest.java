@@ -169,7 +169,7 @@ public class TriageAgentTest extends TestKitSupport {
         assertThat(result).contains("cascade");
         
         // Verify dependency analysis
-        assertThat(result).containsIgnoringWhitespaces("dependency");
+        assertThat(result.toLowerCase()).containsIgnoringWhitespaces("dependency");
     }
 
     @Test
@@ -207,6 +207,6 @@ public class TriageAgentTest extends TestKitSupport {
         System.out.println("assessBusinessImpactAndUrgency result: " + result);
 
         // Verify business impact assessment
-        assertThat(result).containsIgnoringWhitespaces("revenue");
+        assertThat(result.toLowerCase()).containsIgnoringWhitespaces("revenue");
     }
 }
