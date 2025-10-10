@@ -1,6 +1,6 @@
 package com.example.sample.application;
 
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.agent.Agent;
 import akka.javasdk.agent.MemoryProvider;
 import akka.javasdk.agent.ModelProvider;
@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
-@ComponentId("evidence-agent")
+@Component(id = "evidence-agent")
 public class EvidenceAgent extends Agent {
 
     private static final Logger logger = LoggerFactory.getLogger(EvidenceAgent.class);

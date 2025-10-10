@@ -3,7 +3,7 @@ package com.example.sample.application;
 import akka.javasdk.agent.Agent;
 import akka.javasdk.agent.MemoryProvider;
 import akka.javasdk.agent.ModelProvider;
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.FunctionTool;
 import akka.javasdk.annotations.Description;
 
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ComponentId("triage-agent")
+@Component(id = "triage-agent")
 public class TriageAgent extends Agent {
     
     private static final Logger logger = LoggerFactory.getLogger(TriageAgent.class);

@@ -1,7 +1,7 @@
 package com.example.sample.application;
 
 import akka.javasdk.agent.Agent;
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.FunctionTool;
 import akka.javasdk.annotations.Description;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@ComponentId("knowledge-base-agent")
+@Component(id = "knowledge-base-agent")
 public class KnowledgeBaseAgent extends Agent {
 
     private static final Logger logger = LoggerFactory.getLogger(KnowledgeBaseAgent.class);

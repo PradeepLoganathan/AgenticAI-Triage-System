@@ -3,7 +3,7 @@ package com.example.sample.application;
 import akka.javasdk.agent.Agent;
 import akka.javasdk.agent.MemoryProvider;
 import akka.javasdk.agent.ModelProvider;
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.FunctionTool;
 import akka.javasdk.annotations.Description;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 
-@ComponentId("summary-agent")
+@Component(id = "summary-agent")
 public class SummaryAgent extends Agent {
 
     private static final String SYSTEM = """
@@ -311,4 +311,3 @@ public class SummaryAgent extends Agent {
         );
     }
 }
-

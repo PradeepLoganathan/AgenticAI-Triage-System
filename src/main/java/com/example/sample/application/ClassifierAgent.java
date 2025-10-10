@@ -3,7 +3,7 @@ package com.example.sample.application;
 import akka.javasdk.agent.Agent;
 import akka.javasdk.agent.MemoryProvider;
 import akka.javasdk.agent.ModelProvider;
-import akka.javasdk.annotations.ComponentId;
+import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.FunctionTool;
 import akka.javasdk.annotations.Description;
 
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 
-@ComponentId("classifier-agent")
+@Component(id = "classifier-agent")
 public class ClassifierAgent extends Agent {
     
     private static final Logger logger = LoggerFactory.getLogger(ClassifierAgent.class);
@@ -171,4 +171,3 @@ public class ClassifierAgent extends Agent {
         }
     }
 }
-
