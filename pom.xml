@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.akka</groupId>
         <artifactId>akka-javasdk-parent</artifactId>
-        <version>3.4.6</version>
+        <version>3.5.2</version>
     </parent>
 
     <groupId>com.example.sample</groupId>
@@ -18,8 +18,10 @@
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.args>-Xlint:-deprecation</maven.compiler.args>
+    <docker.image>pradeepl/spov-sample-agentic-workflow</docker.image>
   </properties>
-
+  
   <dependencies>
     <dependency>
       <groupId>io.akka</groupId>
@@ -54,6 +56,16 @@
           <includes>
             <include>**/*Test.java</include>
           </includes>
+          <skipTests>${skipTests}</skipTests>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
         </configuration>
       </plugin>
     </plugins>

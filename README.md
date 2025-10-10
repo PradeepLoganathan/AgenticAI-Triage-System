@@ -83,3 +83,20 @@ sequenceDiagram
   UI->>API: GET /triage/{id}
   API-->>UI: conversations
 ```
+
+
+## Sample Incident
+
+Payment service is completely down since 14:30 UTC. Users are unable to complete transactions and getting 503 errors. Multiple customer complaints received via social media and support tickets. Revenue impact is significant.
+
+Error details:
+- Payment gateway returning 503 Service Unavailable
+- Database connection timeouts in payment-service logs  
+- CPU usage spiked to 95% on payment-db-primary
+- Recent deployment of payment-service v2.1.4 at 14:25 UTC
+- Load balancer health checks failing for 3/6 payment service instances
+
+Customer impact: 
+- 100% of payment transactions failing
+- Estimated $50K/hour revenue loss
+- 847 support tickets created in last hour

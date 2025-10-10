@@ -83,7 +83,9 @@ public class EvidenceAgent extends Agent {
         String rawMetrics,
         List<String> errorPatterns,
         List<String> anomalies,
-        int errorCount
+        int errorCount,
+        java.util.Map<String,Integer> statusCodeCounts,
+        List<String> sampleErrorLines
     ) {}
 
     public Effect<String> gather(Request req) {
@@ -130,19 +132,23 @@ public class EvidenceAgent extends Agent {
         logger.info("📝 EvidenceAgent.fetchLogs() called - Service: {}, Lines: {}", service, lines);
         String logs = readLogsFromFile(service, lines);
         EvidenceAnalysis analysis = analyzeLogs(logs, service);
-        logger.debug("📝 fetchLogs analysis - Error count: {}, Patterns: {}", 
-            analysis.errorCount(), analysis.errorPatterns().size());
+        logger.debug("📝 fetchLogs analysis - Error count: {}, Patterns: {}, Status codes: {}", 
+            analysis.errorCount(), analysis.errorPatterns().size(), analysis.statusCodeCounts());
         
         return String.format(
             "Logs Analysis for %s:\n" +
             "- Total lines fetched: %d\n" +
             "- Error count: %d\n" +
             "- Error patterns found: %s\n" +
-            "- Anomalies detected: %s\n\n" +
+            "- HTTP status counts: %s\n" +
+            "- Anomalies detected: %s\n" +
+            "- Sample error lines: %s\n\n" +
             "Raw logs: %s",
             service, lines, analysis.errorCount(),
             String.join(", ", analysis.errorPatterns()),
-            String.join(", ", analysis.anomalies()),
+            analysis.statusCodeCounts().isEmpty() ? "{}" : analysis.statusCodeCounts().toString(),
+            String.join(" | ", analysis.anomalies()),
+            String.join(" \n ", analysis.sampleErrorLines()),
             logs
         );
     }
@@ -338,13 +344,15 @@ public class EvidenceAgent extends Agent {
     
     private EvidenceAnalysis analyzeLogs(String logs, String service) {
         if (logs == null) {
-            return new EvidenceAnalysis(service, "", "", List.of(), List.of(), 0);
+            return new EvidenceAnalysis(service, "", "", List.of(), List.of(), 0, java.util.Map.of(), List.of());
         }
         
         // Pattern matching for common error types
         List<String> errorPatterns = new ArrayList<>();
         List<String> anomalies = new ArrayList<>();
         int errorCount = 0;
+        java.util.Map<String,Integer> statusCounts = new java.util.HashMap<>();
+        List<String> sampleErrorLines = new ArrayList<>();
         
         // Common error patterns
         Pattern errorPattern = Pattern.compile("(?i)(error|exception|failed|timeout|refused)");
@@ -355,11 +363,16 @@ public class EvidenceAgent extends Agent {
         for (String line : lines) {
             if (errorPattern.matcher(line).find()) {
                 errorCount++;
+                if (sampleErrorLines.size() < 5) {
+                    sampleErrorLines.add(line.trim());
+                }
             }
             
             Matcher httpMatcher = httpErrorPattern.matcher(line);
             if (httpMatcher.find()) {
-                errorPatterns.add("HTTP " + httpMatcher.group(1) + " errors");
+                String code = httpMatcher.group(1);
+                errorPatterns.add("HTTP " + code + " errors");
+                statusCounts.merge(code, 1, Integer::sum);
             }
             
             if (dbErrorPattern.matcher(line).find()) {
@@ -372,7 +385,7 @@ public class EvidenceAgent extends Agent {
             anomalies.add("High error rate (" + errorCount + " errors in " + lines.length + " lines)");
         }
         
-        return new EvidenceAnalysis(service, logs, "", errorPatterns, anomalies, errorCount);
+        return new EvidenceAnalysis(service, logs, "", errorPatterns, anomalies, errorCount, statusCounts, sampleErrorLines);
     }
     
     private List<String> analyzeMetrics(String metrics, String expr) {
@@ -403,4 +416,3 @@ public class EvidenceAgent extends Agent {
     }
     
 }
-
