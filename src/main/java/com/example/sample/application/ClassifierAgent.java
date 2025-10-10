@@ -5,7 +5,6 @@ import akka.javasdk.agent.MemoryProvider;
 import akka.javasdk.agent.ModelProvider;
 import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.FunctionTool;
-import akka.javasdk.annotations.Description;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,7 +15,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
-import java.util.Map;
+
 
 
 @Component(id = "classifier-agent")
@@ -100,8 +99,6 @@ public class ClassifierAgent extends Agent {
         
         logger.info("🎯 ClassifierAgent.classify() STARTING - Incident length: {} chars", req.incident().length());
         logger.debug("ClassifierAgent prompt: {}", contextualPrompt.substring(0, Math.min(200, contextualPrompt.length())) + "...");
-        
-        long startTime = System.currentTimeMillis();
         
         return effects()
                 .model(

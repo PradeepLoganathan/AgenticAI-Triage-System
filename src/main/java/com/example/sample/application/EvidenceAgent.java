@@ -107,7 +107,6 @@ public class EvidenceAgent extends Agent {
         );
         
         logger.debug("EvidenceAgent prompt length: {} chars", contextualPrompt.length());
-        long startTime = System.currentTimeMillis();
         
         return effects()
                 .model(
