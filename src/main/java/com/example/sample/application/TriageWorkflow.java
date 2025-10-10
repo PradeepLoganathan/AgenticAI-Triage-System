@@ -48,7 +48,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
         logger.debug("Initial state created, transitioning to classify step");
         return effects()
                 .updateState(init)
-                .transitionTo("classify", cmd)
+                .transitionTo((w, i) -> step("classify"))
                 .thenReply("started");
     }
 
@@ -188,7 +188,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                                     .withClassificationJson(classificationResult)
                                                     .addConversation(new Conversation("assistant", conversationEntry))
                                                     .withStatus(TriageState.Status.CLASSIFIED))
-                                            .transitionTo("gather_evidence");
+                                            .transitionTo(w -> step("gather_evidence"));
                                 })
                 )
                 .addStep(
@@ -236,7 +236,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                                     .withEvidence(logs, metrics)
                                                     .addConversation(new Conversation("assistant", conversationEntry))
                                                     .withStatus(TriageState.Status.EVIDENCE_COLLECTED))
-                                            .transitionTo("triage");
+                                            .transitionTo(w -> step("triage"));
                                 })
                 )
                 .addStep(
@@ -282,7 +282,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                                     .withTriageText(triageResult)
                                                     .addConversation(new Conversation("assistant", conversationEntry))
                                                     .withStatus(TriageState.Status.TRIAGED))
-                                            .transitionTo("query_knowledge_base");
+                                            .transitionTo(w -> step("query_knowledge_base"));
                                 })
                 )
                 .addStep(
@@ -303,7 +303,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                                     .withKnowledgeBaseResult(knowledgeBaseResult)
                                                     .addConversation(new Conversation("assistant", "Knowledge base search completed."))
                                                     .withStatus(TriageState.Status.KNOWLEDGE_BASE_SEARCHED))
-                                            .transitionTo("remediate");
+                                            .transitionTo(w -> step("remediate"));
                                 })
                 )
                 .addStep(
@@ -344,7 +344,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                                     .withRemediationText(remediationResult)
                                                     .addConversation(new Conversation("assistant", conversationEntry))
                                                     .withStatus(TriageState.Status.REMEDIATION_PROPOSED))
-                                            .transitionTo("summarize");
+                                            .transitionTo(w -> step("summarize"));
                                 })
                 )
                 .addStep(
@@ -373,7 +373,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
                                                     .withSummaryText(summaryResult)
                                                     .addConversation(new Conversation("assistant", conversationEntry))
                                                     .withStatus(TriageState.Status.SUMMARY_READY))
-                                            .transitionTo("finalize");
+                                            .transitionTo(w -> step("finalize"));
                                 })
                 )
                 .addStep(
