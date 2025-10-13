@@ -144,8 +144,16 @@ public class TriageAgent extends Agent {
             @Description("Tool name to invoke on the MCP server") String toolName,
             @Description("JSON string of arguments for the tool call") String argumentsJson
     ) {
-        String endpoint = System.getProperty("MCP_HTTP_URL",
-                System.getenv().getOrDefault("MCP_HTTP_URL", "http://localhost:7400/jsonrpc"));
+        String endpoint;
+        try {
+            var cfg = com.typesafe.config.ConfigFactory.load();
+            endpoint = System.getProperty("MCP_HTTP_URL",
+                    System.getenv().getOrDefault("MCP_HTTP_URL",
+                            cfg.hasPath("mcp.http.url") ? cfg.getString("mcp.http.url") : "http://localhost:9100/mcp"));
+        } catch (Throwable t) {
+            endpoint = System.getProperty("MCP_HTTP_URL",
+                    System.getenv().getOrDefault("MCP_HTTP_URL", "http://localhost:9100/mcp"));
+        }
         String id = java.util.UUID.randomUUID().toString();
 
         // Basic escape for tool name to embed in JSON

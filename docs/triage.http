@@ -1,0 +1,30 @@
+@baseUrl = http://localhost:9100
+@json = application/json
+@triageId = TRIAGE-20251013T014730-08k1
+
+### Start triage workflow
+POST {{baseUrl}}/triage/{{triageId}}
+Content-Type: {{json}}
+
+{
+  "incident": "Checkout 5xx spike after deployment v2.1.4 at 14:25 UTC. Users report failures; error rate above 10%."
+}
+
+### Get conversations for the workflow
+GET {{baseUrl}}/triage/{{triageId}}
+
+### Get current workflow state
+GET {{baseUrl}}/triage/{{triageId}}/state
+
+### Repeat a message in workflow (debug/demo helper)
+POST {{baseUrl}}/triage/{{triageId}}/repeat
+Content-Type: {{json}}
+
+{
+  "message": "Hello",
+  "times": 2
+}
+
+### Open simple UI (if browsing via REST Client preview)
+GET {{baseUrl}}/
+

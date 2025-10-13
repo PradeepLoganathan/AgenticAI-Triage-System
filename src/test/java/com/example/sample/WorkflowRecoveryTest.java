@@ -8,6 +8,7 @@ import com.example.sample.application.EvidenceAgent;
 import com.example.sample.application.TriageAgent;
 import com.example.sample.application.RemediationAgent;
 import com.example.sample.application.SummaryAgent;
+import com.example.sample.application.KnowledgeBaseAgent;
 import com.example.sample.application.TriageWorkflow;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +21,7 @@ public class WorkflowRecoveryTest extends TestKitSupport {
     private final TestModelProvider triageModel = new TestModelProvider();
     private final TestModelProvider remediationModel = new TestModelProvider();
     private final TestModelProvider summaryModel = new TestModelProvider();
+    private final TestModelProvider knowledgeModel = new TestModelProvider();
 
     @Override
     protected TestKit.Settings testKitSettings() {
@@ -28,7 +30,8 @@ public class WorkflowRecoveryTest extends TestKitSupport {
                 .withModelProvider(EvidenceAgent.class, evidenceModel)
                 .withModelProvider(TriageAgent.class, triageModel)
                 .withModelProvider(RemediationAgent.class, remediationModel)
-                .withModelProvider(SummaryAgent.class, summaryModel);
+                .withModelProvider(SummaryAgent.class, summaryModel)
+                .withModelProvider(KnowledgeBaseAgent.class, knowledgeModel);
     }
 
     @Test
@@ -41,6 +44,7 @@ public class WorkflowRecoveryTest extends TestKitSupport {
         triageModel.fixedResponse("ok");
         remediationModel.fixedResponse("ok");
         summaryModel.fixedResponse("ok");
+        knowledgeModel.fixedResponse("ok");
 
         // Start to initialize state (this will begin classification immediately)
         componentClient

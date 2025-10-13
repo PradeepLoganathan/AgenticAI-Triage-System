@@ -14,8 +14,19 @@ public class McpClient {
     private final String endpoint;
 
     public McpClient() {
-        this.endpoint = System.getProperty("MCP_HTTP_URL",
-                System.getenv().getOrDefault("MCP_HTTP_URL", "http://localhost:7400/jsonrpc"));
+        // Resolve MCP endpoint in order: System property -> Env var -> application.conf -> default
+        String fromSys = System.getProperty("MCP_HTTP_URL");
+        String fromEnv = System.getenv("MCP_HTTP_URL");
+        String fromConf = null;
+        try {
+            // Avoid hard dependency if config not present
+            com.typesafe.config.Config cfg = com.typesafe.config.ConfigFactory.load();
+            if (cfg.hasPath("mcp.http.url")) {
+                fromConf = cfg.getString("mcp.http.url");
+            }
+        } catch (Throwable ignored) {}
+        String fallback = "http://localhost:9100/mcp"; // in-app default MCP endpoint
+        this.endpoint = coalesce(fromSys, fromEnv, fromConf, fallback);
     }
 
     public String callTool(String toolName, String argumentsJson) {
@@ -57,5 +68,11 @@ public class McpClient {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
-}
 
+    private static String coalesce(String... vals) {
+        for (String v : vals) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return null;
+    }
+}

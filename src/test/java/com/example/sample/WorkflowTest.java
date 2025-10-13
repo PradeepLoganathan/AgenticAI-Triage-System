@@ -9,6 +9,7 @@ import com.example.sample.application.RemediationAgent;
 import com.example.sample.application.SummaryAgent;
 import com.example.sample.application.TriageAgent;
 import com.example.sample.application.EvidenceAgent;
+import com.example.sample.application.KnowledgeBaseAgent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +22,7 @@ public class WorkflowTest extends TestKitSupport {
     private final TestModelProvider remediationModel = new TestModelProvider();
     private final TestModelProvider summaryModel = new TestModelProvider();
     private final TestModelProvider evidenceModel = new TestModelProvider();
+    private final TestModelProvider knowledgeModel = new TestModelProvider();
 
     @Override
     protected TestKit.Settings testKitSettings() {
@@ -29,7 +31,8 @@ public class WorkflowTest extends TestKitSupport {
                 .withModelProvider(TriageAgent.class, triageModel)
                 .withModelProvider(RemediationAgent.class, remediationModel)
                 .withModelProvider(SummaryAgent.class, summaryModel)
-                .withModelProvider(EvidenceAgent.class, evidenceModel);
+                .withModelProvider(EvidenceAgent.class, evidenceModel)
+                .withModelProvider(KnowledgeBaseAgent.class, knowledgeModel);
     }
 
     @BeforeEach
@@ -46,6 +49,7 @@ public class WorkflowTest extends TestKitSupport {
         triageModel.fixedResponse("Hypothesis: db pool exhaustion\nActions: 1) rollback 2) scale db");
         remediationModel.fixedResponse("Plan: 1) rollback 2) validate 3) communicate");
         summaryModel.fixedResponse("Incident: Checkout errors\nImpact: elevated 5xx\nNext update: 30m");
+        knowledgeModel.fixedResponse("Runbooks found: checkout.md, payments_incident_2023-09.md");
 
         var wfId = "wf-test-1";
         var incident = "Checkout 5xx spike after deploy";

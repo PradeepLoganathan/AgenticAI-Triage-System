@@ -46,7 +46,7 @@ public class RemediationAgent extends Agent {
            - Plan automated and manual validation procedures
            - Design alerting for remediation failures
         
-        **IMPORTANT**: Before formulating a plan, you MUST use the `search_knowledge_base` tool to find existing runbooks or incident reports related to the service and symptoms. This is critical for creating a safe and effective plan.
+        **IMPORTANT**: Before formulating a plan, review the provided 'KNOWLEDGE BASE SEARCH RESULTS'. If this section is missing or insufficient, explicitly note the knowledge gaps and what information is needed from the knowledge base so the workflow can fetch it. This is critical for creating a safe and effective plan.
 
         Use other available tools to validate assumptions and gather additional context.
         

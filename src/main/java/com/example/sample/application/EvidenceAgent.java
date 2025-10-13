@@ -128,27 +128,60 @@ public class EvidenceAgent extends Agent {
             @Description("Service name to fetch logs from") String service,
             @Description("Number of log lines to fetch") int lines
     ) {
-        logger.info("📝 EvidenceAgent.fetchLogs() called - Service: {}, Lines: {}", service, lines);
-        String logs = readLogsFromFile(service, lines);
+        logger.info("📝 EvidenceAgent.fetchLogs() called - Service: {}, Lines: {} (via MCP)", service, lines);
+        String logs = null;
+        String source = null;
+        Integer linesReturned = null;
+        try {
+            McpClient mcp = new McpClient();
+            String body = mcp.fetchLogs(service, lines);
+            logger.debug("📝 MCP fetch_logs raw response: {}", body);
+            if (body != null && body.startsWith("MCP_ERROR")) {
+                logger.warn("📝 MCP fetch_logs error, falling back to local logs: {}", body);
+            } else {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(body);
+                JsonNode result = root.get("result");
+                if (result != null && !result.isNull()) {
+                    if (result.has("logs")) logs = result.get("logs").asText();
+                    else if (result.has("output")) logs = result.get("output").asText();
+                    else logs = result.toString();
+                    if (result.has("source")) source = result.get("source").asText();
+                    if (result.has("linesReturned")) linesReturned = result.get("linesReturned").asInt();
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("📝 MCP fetch_logs exception, falling back to local: {}", e.toString());
+        }
+
+        if (logs == null) {
+            logs = readLogsFromFile(service, lines);
+        }
+
         EvidenceAnalysis analysis = analyzeLogs(logs, service);
-        logger.debug("📝 fetchLogs analysis - Error count: {}, Patterns: {}, Status codes: {}", 
-            analysis.errorCount(), analysis.errorPatterns().size(), analysis.statusCodeCounts());
-        
+        logger.debug("📝 fetchLogs analysis - Error count: {}, Patterns: {}, Status codes: {}",
+                analysis.errorCount(), analysis.errorPatterns().size(), analysis.statusCodeCounts());
+
         return String.format(
-            "Logs Analysis for %s:\n" +
-            "- Total lines fetched: %d\n" +
-            "- Error count: %d\n" +
-            "- Error patterns found: %s\n" +
-            "- HTTP status counts: %s\n" +
-            "- Anomalies detected: %s\n" +
-            "- Sample error lines: %s\n\n" +
-            "Raw logs: %s",
-            service, lines, analysis.errorCount(),
-            String.join(", ", analysis.errorPatterns()),
-            analysis.statusCodeCounts().isEmpty() ? "{}" : analysis.statusCodeCounts().toString(),
-            String.join(" | ", analysis.anomalies()),
-            String.join(" \n ", analysis.sampleErrorLines()),
-            logs
+                "Logs Analysis for %s:\n" +
+                        "- Total lines requested: %d\n" +
+                        "- Lines returned: %s\n" +
+                        "- Source: %s\n" +
+                        "- Error count: %d\n" +
+                        "- Error patterns found: %s\n" +
+                        "- HTTP status counts: %s\n" +
+                        "- Anomalies detected: %s\n" +
+                        "- Sample error lines: %s\n\n" +
+                        "Raw logs: %s",
+                service, lines,
+                linesReturned == null ? "unknown" : linesReturned,
+                source == null ? "unknown" : source,
+                analysis.errorCount(),
+                String.join(", ", analysis.errorPatterns()),
+                analysis.statusCodeCounts().isEmpty() ? "{}" : analysis.statusCodeCounts().toString(),
+                String.join(" | ", analysis.anomalies()),
+                String.join(" \n ", analysis.sampleErrorLines()),
+                logs
         );
     }
     
@@ -185,18 +218,46 @@ public class EvidenceAgent extends Agent {
             @Description("Metrics expression to query") String expr,
             @Description("Time range for the query") String range
     ) {
-        logger.info("📊 EvidenceAgent.queryMetrics() called - Expr: {}, Range: {}", expr, range);
-        String metrics = readMetricsFromFile(expr, range);
+        logger.info("📊 EvidenceAgent.queryMetrics() called - Expr: {}, Range: {} (via MCP)", expr, range);
+        String metrics = null;
+        String source = null;
+        try {
+            McpClient mcp = new McpClient();
+            String body = mcp.queryMetrics(expr, range);
+            logger.debug("📊 MCP query_metrics raw response: {}", body);
+            if (body != null && body.startsWith("MCP_ERROR")) {
+                logger.warn("📊 MCP query_metrics error, falling back to local metrics: {}", body);
+            } else {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(body);
+                JsonNode result = root.get("result");
+                if (result != null && !result.isNull()) {
+                    if (result.has("raw")) metrics = result.get("raw").asText();
+                    else if (result.has("output")) metrics = result.get("output").asText();
+                    else metrics = result.toString();
+                    if (result.has("source")) source = result.get("source").asText();
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("📊 MCP query_metrics exception, falling back to local: {}", e.toString());
+        }
+
+        if (metrics == null) {
+            metrics = readMetricsFromFile(expr, range);
+        }
+
         List<String> insights = analyzeMetrics(metrics, expr);
         logger.debug("📊 queryMetrics analysis - Insights count: {}", insights.size());
-        
+
         return String.format(
-            "Metrics Analysis for '%s' over %s:\n" +
-            "- Key insights: %s\n\n" +
-            "Raw metrics: %s",
-            expr, range,
-            String.join(", ", insights),
-            metrics
+                "Metrics Analysis for '%s' over %s:\n" +
+                        "- Source: %s\n" +
+                        "- Key insights: %s\n\n" +
+                        "Raw metrics: %s",
+                expr, range,
+                source == null ? "unknown" : source,
+                String.join(", ", insights),
+                metrics
         );
     }
     

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.example.sample.domain.TriageState;

@@ -13,14 +13,35 @@ This module demonstrates a multi‑agent system orchestrated by an Akka Java SDK
 
 ## Run
 - Prereq: set `OPENAI_API_KEY`.
-- Optional: set `MCP_HTTP_URL` (default `http://localhost:7400/jsonrpc`) to enable MCP tool calls.
+- Optional: set `MCP_HTTP_URL` (default `http://localhost:9100/mcp`) to enable MCP tool calls.
 - Build: `mvn -f spov-sample-agentic-workflow/pom.xml clean package`
 - Dev mode: starts on `:9100` (configured in `src/main/resources/application.conf`).
 
 ## HTTP
 - Start triage: `POST /triage/{triageId}` with body `{ "incident": "<summary>" }`
 - Get conversation: `GET /triage/{triageId}`
-- MCP mock server: `POST /mcp` accepts JSON‑RPC `{ "jsonrpc":"2.0", "id": "...", "method":"call_tool", "params": {"name":"...","arguments": {..}} }` and returns a mocked result.
+- MCP server: `POST /mcp` accepts JSON‑RPC `{ "jsonrpc":"2.0", "id": "...", "method":"call_tool", "params": {"name":"...","arguments": {..}} }` and serves file‑based logs/metrics. Replace with real backends as needed.
+
+## MCP Configuration
+
+- Endpoint resolution order for agents (EvidenceAgent via `McpClient`, TriageAgent via `mcp-call`):
+  1) System property `MCP_HTTP_URL`
+  2) Environment variable `MCP_HTTP_URL`
+  3) `mcp.http.url` in `application.conf`
+  4) Default `http://localhost:9100/mcp`
+
+- Default config in `src/main/resources/application.conf`:
+
+```
+mcp.http.url = "http://localhost:9100/mcp"
+akka.javasdk.dev-mode.http-port = 9100
+```
+
+- Override example:
+
+```
+MCP_HTTP_URL=https://mcp.internal/jsonrpc mvn -f spov-sample-agentic-workflow/pom.xml exec:java
+```
 
 ## UI
 - Open `GET /` to use the minimal web UI to start a triage and inspect conversations/state.
