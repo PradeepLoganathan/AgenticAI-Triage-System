@@ -1,6 +1,8 @@
 package com.example.sample.application;
 
 import akka.javasdk.agent.Agent;
+import akka.javasdk.agent.ModelProvider;
+import akka.javasdk.agent.MemoryProvider;
 import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.FunctionTool;
 import akka.javasdk.annotations.Description;
@@ -19,9 +21,33 @@ import java.util.stream.Stream;
 public class KnowledgeBaseAgent extends Agent {
 
     private static final Logger logger = LoggerFactory.getLogger(KnowledgeBaseAgent.class);
+    
+    private static final String SYSTEM = """
+        You are a knowledge base retrieval assistant.
+        
+        Task:
+        - Use the `search_knowledge_base` tool with the provided query to find relevant runbooks, incident reports, and documentation.
+        - Return concise, helpful results. Prefer summarizing key findings and include file names as sources.
+        - If no results are found, say so explicitly.
+        
+        Always call the tool before responding.
+        """;
 
     public Effect<String> search(String query) {
-        return effects().reply(searchKnowledgeBase(query));
+        logger.info("🧠 KnowledgeBaseAgent.search() - invoking model with tool for query: {}", query);
+        return effects()
+                .model(
+                        ModelProvider.openAi()
+                                .withApiKey(System.getenv("OPENAI_API_KEY"))
+                                .withModelName("gpt-4o-mini")
+                                .withTemperature(0.1)
+                                .withMaxTokens(1200)
+                )
+                .memory(MemoryProvider.limitedWindow())
+                .tools(this)
+                .systemMessage(SYSTEM)
+                .userMessage("Query: " + (query == null ? "" : query))
+                .thenReply();
     }
 
     @FunctionTool(name = "search_knowledge_base", description = "Searches the knowledge base for runbooks, incident reports, and other documents related to a query.")
