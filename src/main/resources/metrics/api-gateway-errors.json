@@ -1,0 +1,26 @@
+{
+  "query": "errors:rate1m",
+  "time_range": "30m",
+  "timestamp": "2025-01-15T14:30:00Z",
+  "metrics": {
+    "error_rate": {
+      "current": 7.8,
+      "previous_window": 0.9,
+      "threshold": 2.0,
+      "status": "elevated"
+    },
+    "error_count": {
+      "total": 143,
+      "by_type": {
+        "upstream_timeout": 67,
+        "bad_gateway": 45,
+        "tls_handshake": 12,
+        "rate_limited": 19
+      }
+    },
+    "affected_upstreams": ["checkout-service", "payment-service"],
+    "spike_window": "14:29-14:30",
+    "mitigation": "circuit breaker opened for payment-service; checkout-service rollback in progress"
+  }
+}
+

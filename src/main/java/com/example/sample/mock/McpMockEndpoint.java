@@ -105,14 +105,23 @@ public class McpMockEndpoint {
     }
 
     private static String determineMetricsFile(String expr) {
-        if (expr.contains("error") || expr.contains("fail")) {
-            return "metrics/payment-service-errors.json";
-        } else if (expr.contains("latency") || expr.contains("response_time")) {
+        String e = expr == null ? "" : expr.toLowerCase();
+        if (e.contains("gateway") && (e.contains("error") || e.contains("5xx"))) {
+            return "metrics/api-gateway-errors.json";
+        } else if (e.contains("checkout") && (e.contains("latency") || e.contains("p95") || e.contains("response_time"))) {
+            return "metrics/checkout-service-latency.json";
+        } else if (e.contains("auth") && (e.contains("error") || e.contains("fail"))) {
+            return "metrics/auth-service-errors.json";
+        } else if (e.contains("db") || e.contains("database")) {
+            return "metrics/db-performance.json";
+        } else if (e.contains("latency") || e.contains("response_time")) {
             return "metrics/payment-service-latency.json";
-        } else if (expr.contains("cpu") || expr.contains("memory") || expr.contains("resource")) {
+        } else if (e.contains("cpu") || e.contains("memory") || e.contains("resource")) {
             return "metrics/user-service-resources.json";
-        } else if (expr.contains("throughput") || expr.contains("rate")) {
+        } else if (e.contains("throughput") || e.contains("rate")) {
             return "metrics/order-service-throughput.json";
+        } else if (e.contains("error") || e.contains("fail")) {
+            return "metrics/payment-service-errors.json";
         } else {
             return "metrics/payment-service-errors.json";
         }

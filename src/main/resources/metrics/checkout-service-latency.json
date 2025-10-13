@@ -1,0 +1,34 @@
+{
+  "query": "latency:p95",
+  "time_range": "1h",
+  "timestamp": "2025-01-12T18:50:00Z",
+  "metrics": {
+    "latency_percentiles": {
+      "p50": 320,
+      "p95": 1800,
+      "p99": 3500,
+      "p99.9": 7200,
+      "unit": "ms"
+    },
+    "average_latency": {
+      "current": 600,
+      "previous_1h": 210,
+      "baseline": 190,
+      "status": "degraded",
+      "unit": "ms"
+    },
+    "thread_pool": {
+      "active_threads": 48,
+      "max_threads": 50,
+      "queued_tasks": 580,
+      "rejected_tasks": 35,
+      "pool_utilization": 96.0
+    },
+    "gc": {
+      "longest_pause_ms": 520,
+      "old_gen_collections": 9,
+      "gc_pressure": "high"
+    }
+  }
+}
+
