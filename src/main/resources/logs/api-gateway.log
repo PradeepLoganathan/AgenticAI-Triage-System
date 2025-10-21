@@ -1,0 +1,15 @@
+2025-01-15 14:25:00.001 INFO  [api-gateway] Startup complete. Version=v1.12.0 routes=128
+2025-01-15 14:26:05.234 WARN  [api-gateway] Upstream timeout to checkout-service: GET /checkout/summary latency=2050ms
+2025-01-15 14:26:05.235 ERROR [api-gateway] Upstream 504 for /checkout/summary service=checkout-service trace=trc-abc123
+2025-01-15 14:26:10.789 WARN  [api-gateway] Rate limit exceeded for /api/auth/login client=198.51.100.10 code=429
+2025-01-15 14:27:00.456 INFO  [api-gateway] CircuitBreaker opened for payment-service upstream-errors=24/60s
+2025-01-15 14:27:30.123 ERROR [api-gateway] TLS handshake failure with upstream payment-service reason=certificate_expired
+2025-01-15 14:28:01.789 WARN  [api-gateway] High error ratio to checkout-service: 12.4% in last 1m
+2025-01-15 14:28:20.345 ERROR [api-gateway] Upstream 502 Bad Gateway path=/checkout/submit service=checkout-service
+2025-01-15 14:28:45.678 INFO  [api-gateway] CircuitBreaker half-open for payment-service
+2025-01-15 14:29:05.001 INFO  [api-gateway] CircuitBreaker closed for payment-service after successful probes
+2025-01-15 14:29:30.456 INFO  [api-gateway] Health check OK. p50=45ms p95=210ms 5xx=1.2%
+2025-01-15 14:30:10.234 WARN  [api-gateway] Spike detected: 5xx=7.8% upstream=checkout-service window=1m
+2025-01-15 14:30:20.567 ERROR [api-gateway] Upstream connection refused service=payment-service endpoint=10.0.0.15:8443
+2025-01-15 14:31:00.000 INFO  [api-gateway] Recovery observed: 5xx back to 0.8%
+

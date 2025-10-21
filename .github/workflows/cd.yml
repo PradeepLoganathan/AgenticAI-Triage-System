@@ -1,0 +1,51 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SERVICE_NAME: triage-system
+      IMAGE_NAME: spov-sample-agentic-workflow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Read project version
+        id: ver
+        run: echo "value=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)" >> $GITHUB_OUTPUT
+
+      - name: Compute docker tag
+        id: tag
+        run: |
+          TS=$(date -u +%Y%m%d%H%M%S)
+          echo "value=${{ steps.ver.outputs.value }}-$TS" >> $GITHUB_OUTPUT
+
+      - name: Build image with Maven
+        run: |
+          mvn -B -DskipTests \
+            -Dskip.docker=false \
+            -Ddocker.tag=${{ steps.tag.outputs.value }} \
+            install
+
+      - name: Install Akka CLI
+        uses: akka/setup-akka-cli-action@v1.0.1
+        with:
+          token: ${{ secrets.AKKA_TOKEN }}
+          project-id: ${{ secrets.AKKA_PROJECT_ID }}
+
+      - name: Deploy via Akka CLI (push image)
+        run: |
+          akka service deploy ${{ env.SERVICE_NAME }} \
+            ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }} \
+            --push \
+            --secret-env OPENAI_API_KEY=openai-api-key/OPENAI_API_KEYv
+
