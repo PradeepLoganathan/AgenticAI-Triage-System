@@ -93,6 +93,25 @@ public class SummaryAgent extends Agent {
     );
 
     public Effect<String> summarize(Request req) {
+        // Pre-compute guidance using available tool methods so their outputs
+        // are explicitly incorporated into the model prompt.
+        String urgencyAssessment = assessCommunicationUrgency(
+                req.incident() != null ? req.incident() : "",
+                req.classificationJson() != null ? req.classificationJson() : "");
+
+        String initialTimeline = generateTimeline(
+                req.classificationJson() != null ? req.classificationJson() : "",
+                req.triageText() != null ? req.triageText() : "",
+                req.remediationText() != null ? req.remediationText() : "");
+
+        String executiveToneGuidance = tailorMessageForAudience(
+                "EXECUTIVE",
+                req.incident() != null ? req.incident() : "");
+
+        String publicToneGuidance = tailorMessageForAudience(
+                "PUBLIC",
+                req.incident() != null ? req.incident() : "");
+
         String contextualPrompt = String.format(
             "INCIDENT SUMMARY GENERATION REQUEST\n" +
             "===================================\n" +
@@ -101,14 +120,25 @@ public class SummaryAgent extends Agent {
             "CLASSIFICATION RESULTS:\n%s\n\n" +
             "TRIAGE ANALYSIS:\n%s\n\n" +
             "REMEDIATION PLAN:\n%s\n\n" +
+            "TOOL OUTPUTS (PRE-COMPUTED FOR YOU):\n" +
+            "------------------------------------\n" +
+            "COMMUNICATION URGENCY ASSESSMENT:\n%s\n\n" +
+            "INITIAL INCIDENT TIMELINE DRAFT:\n%s\n\n" +
+            "AUDIENCE TONE GUIDANCE (EXECUTIVE):\n%s\n\n" +
+            "AUDIENCE TONE GUIDANCE (PUBLIC):\n%s\n\n" +
             "Please create comprehensive summaries for different audiences. " +
             "Use available tools to assess appropriate communication strategies " +
-            "and tailor messaging for each stakeholder group.",
+            "and tailor messaging for each stakeholder group. " +
+            "Incorporate the provided tool outputs into the structured JSON (and you may still call tools if needed).",
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
             req.incident() != null ? req.incident() : "Not provided",
             req.classificationJson() != null ? req.classificationJson() : "Not provided",
             req.triageText() != null ? req.triageText() : "Not provided",
-            req.remediationText() != null ? req.remediationText() : "Not provided"
+            req.remediationText() != null ? req.remediationText() : "Not provided",
+            urgencyAssessment,
+            initialTimeline,
+            executiveToneGuidance,
+            publicToneGuidance
         );
 
         return effects()
