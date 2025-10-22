@@ -27,8 +27,9 @@ public class EvidenceAgentTest extends TestKitSupport {
 
     @BeforeEach
     public void setup() {
-        // Route MCP calls to the in-process mock endpoint
-        System.setProperty("MCP_HTTP_URL", "http://localhost:9100/mcp");
+        // Note: In production, EvidenceAgent uses RemoteMcpTools.fromService("evidence-tools")
+        // which discovers the evidence-tools service at http://localhost:9200/mcp
+        // In tests, we use TestModelProvider to mock the AI responses instead
     }
 
     @Test
