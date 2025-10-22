@@ -38,17 +38,8 @@ This module demonstrates a multi‑agent system orchestrated by an Akka Java SDK
 
 **Service Discovery**: The named service `"evidence-tools"` is resolved through Akka service discovery. Configure the external MCP endpoint URL by adding to `src/main/resources/application.conf`:
 
-```hocon
-akka.javasdk.agent.mcp.services {
-  evidence-tools {
-    url = "http://localhost:7400/jsonrpc"
-    # Or override via environment variable:
-    # url = ${?EVIDENCE_TOOLS_MCP_URL}
-  }
-}
-```
 
-**Note**: MCP tools must be hosted on an external MCP-compatible server. Deploy your own server implementing `fetch_logs`, `query_metrics`, and `correlate_evidence` tools, or use existing MCP services.
+
 
 ## Web UI
 - Open `http://localhost:9100` for interactive demo interface
