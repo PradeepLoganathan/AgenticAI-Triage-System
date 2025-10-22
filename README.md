@@ -1,6 +1,6 @@
-# Sample: Agent + Workflow (Triage)
+# Agentic Triage System
 
-This module demonstrates a multi‑agent system orchestrated by an Akka Java SDK Workflow.
+A production-ready multi-agent incident triage system orchestrated by Akka Java SDK Workflow.
 
 ## What it does
 - `ClassifierAgent`: classifies incident (service, severity, domain) with structured reasoning and confidence scores.
@@ -53,8 +53,8 @@ This module demonstrates a multi‑agent system orchestrated by an Akka Java SDK
 ## Notes
 - Uses `ModelProvider.openAi()` with `gpt-4o-mini` (configurable in `application.conf`).
 - Agents share context via `TriageState` (incident, classification, evidence, triage, knowledge base results, remediation, summary).
-- **EvidenceAgent**: Uses native MCP integration with external tools (requires external MCP server).
-- **KnowledgeBaseAgent**: Uses embedded `@FunctionTool` to search local `knowledge_base/` resources.
+- **EvidenceAgent**: Uses native MCP integration with external MCP server for logs and metrics (no local mock data).
+- **KnowledgeBaseAgent**: Uses embedded `@FunctionTool` to search local `knowledge_base/` resources (runbooks, incident reports).
 - **TriageAgent**: Uses embedded `@FunctionTool` methods (`assess_impact`, `analyze_patterns`) plus optional `mcp-call` for external data.
 - Workflow includes error recovery: evidence gathering failures failover to triage, remediation failures skip to summary.
 - Session-based memory: All agents in a workflow share the same session ID for bounded context window.

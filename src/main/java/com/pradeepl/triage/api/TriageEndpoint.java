@@ -1,4 +1,4 @@
-package com.example.sample.api;
+package com.pradeepl.triage.api;
 
 import akka.http.javadsl.model.HttpResponse;
 import akka.javasdk.annotations.Acl;
@@ -7,7 +7,7 @@ import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.annotations.http.Post;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.http.HttpResponses;
-import com.example.sample.application.TriageWorkflow;
+import com.pradeepl.triage.application.TriageWorkflow;
 
 @Acl(allow = @Acl.Matcher(principal = Acl.Principal.INTERNET))
 @HttpEndpoint("/triage/{triageId}")

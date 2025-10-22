@@ -1,4 +1,4 @@
-package com.example.sample.application;
+package com.pradeepl.triage.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

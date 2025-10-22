@@ -1,4 +1,4 @@
-package com.example.sample;
+package com.pradeepl.triage;
 
 import akka.javasdk.ServiceSetup;
 import akka.javasdk.annotations.Setup;

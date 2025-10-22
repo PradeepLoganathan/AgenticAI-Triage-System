@@ -1,4 +1,4 @@
-package com.example.sample.api;
+package com.pradeepl.triage.api;
 
 import akka.http.javadsl.model.HttpResponse;
 import akka.javasdk.annotations.Acl;

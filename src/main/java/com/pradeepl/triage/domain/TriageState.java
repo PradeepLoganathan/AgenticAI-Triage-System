@@ -1,4 +1,4 @@
-package com.example.sample.domain;
+package com.pradeepl.triage.domain;
 
 import java.util.ArrayList;
 import java.util.List;

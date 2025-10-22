@@ -1,10 +1,10 @@
-package com.example.sample.application;
+package com.pradeepl.triage.application;
 
 import akka.javasdk.annotations.Component;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.annotations.StepName;
 import akka.javasdk.workflow.Workflow;
-import com.example.sample.domain.Conversation;
+import com.pradeepl.triage.domain.Conversation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import com.example.sample.domain.TriageState;
+import com.pradeepl.triage.domain.TriageState;
 
 import static java.time.Duration.ofSeconds;
 

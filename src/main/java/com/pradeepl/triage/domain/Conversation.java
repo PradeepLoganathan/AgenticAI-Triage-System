@@ -1,4 +1,4 @@
-package com.example.sample.domain;
+package com.pradeepl.triage.domain;
 
 public record Conversation(String role, String content) {}
 
