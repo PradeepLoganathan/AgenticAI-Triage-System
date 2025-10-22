@@ -3,68 +3,85 @@
 This module demonstrates a multi‑agent system orchestrated by an Akka Java SDK Workflow.
 
 ## What it does
-- `ClassifierAgent`: classifies incident (service, severity, domain) as JSON.
-- `EvidenceAgent`: gathers evidence via MCP tools (`fetch_logs`, `query_metrics`).
-- `TriageAgent`: synthesizes hypothesis and next actions.
-- `RemediationAgent`: proposes a staged remediation plan.
-- `SummaryAgent`: produces an operator-facing summary.
-- `TriageWorkflow`: orchestrates classify → gather_evidence → triage → remediate → summarize → finalize.
-- `TriageEndpoint`: HTTP interface to start and fetch conversations; `McpMockEndpoint` simulates MCP.
+- `ClassifierAgent`: classifies incident (service, severity, domain) with structured reasoning and confidence scores.
+- `EvidenceAgent`: gathers evidence via native MCP tools from external service (`fetch_logs`, `query_metrics`, `correlate_evidence`).
+- `TriageAgent`: performs systematic diagnosis using 5 Whys methodology, impact assessment, and pattern analysis.
+- `KnowledgeBaseAgent`: searches local knowledge base (runbooks, incident reports) using embedded function tools.
+- `RemediationAgent`: proposes risk-aware staged remediation plans with rollback strategies.
+- `SummaryAgent`: produces multi-audience summaries (executive, technical, customer support).
+- `TriageWorkflow`: orchestrates classify → gather_evidence → triage → query_knowledge_base → remediate → summarize → finalize.
+- `TriageEndpoint`: HTTP interface to start workflows and fetch conversations/state.
+- `UiEndpoint`: Serves interactive web UI for real-time workflow visualization.
 
 ## Run
 - Prereq: set `OPENAI_API_KEY`.
-- Optional: set `MCP_HTTP_URL` (default `http://localhost:9100/mcp`) to enable MCP tool calls.
-- Build: `mvn -f spov-sample-agentic-workflow/pom.xml clean package`
+- Build: `mvn clean compile exec:java`
 - Dev mode: starts on `:9100` (configured in `src/main/resources/application.conf`).
+- Open browser: `http://localhost:9100` for interactive demo UI.
 
-## HTTP
+## HTTP API
 - Start triage: `POST /triage/{triageId}` with body `{ "incident": "<summary>" }`
 - Get conversation: `GET /triage/{triageId}`
-- MCP server: `POST /mcp` accepts JSON‑RPC `{ "jsonrpc":"2.0", "id": "...", "method":"call_tool", "params": {"name":"...","arguments": {..}} }` and serves file‑based logs/metrics. Replace with real backends as needed.
+- Get state: `GET /triage/{triageId}/state`
+- Repeat demo: `POST /triage/{triageId}/repeat` with body `{ "message": "demo note", "times": 5 }`
 
 ## MCP Configuration
 
-- Endpoint resolution order for agents (EvidenceAgent via `McpClient`, TriageAgent via `mcp-call`):
-  1) System property `MCP_HTTP_URL`
-  2) Environment variable `MCP_HTTP_URL`
-  3) `mcp.http.url` in `application.conf`
-  4) Default `http://localhost:9100/mcp`
+**EvidenceAgent** uses native Akka SDK MCP integration to call tools from an external MCP server:
 
-- Default config in `src/main/resources/application.conf`:
-
-```
-mcp.http.url = "http://localhost:9100/mcp"
-akka.javasdk.dev-mode.http-port = 9100
+```java
+.mcpTools(
+    RemoteMcpTools.fromService("evidence-tools")
+        .withAllowedToolNames("fetch_logs", "query_metrics", "correlate_evidence")
+)
 ```
 
-- Override example:
+**Service Discovery**: Configure external MCP endpoint in `src/main/resources/application.conf`:
 
-```
-MCP_HTTP_URL=https://mcp.internal/jsonrpc mvn -f spov-sample-agentic-workflow/pom.xml exec:java
+```hocon
+akka.javasdk.agent.mcp.services {
+  evidence-tools {
+    url = "http://localhost:7400/jsonrpc"  # External MCP server
+    # url = ${?EVIDENCE_TOOLS_MCP_URL}      # Override via env var
+  }
+}
 ```
 
-## UI
-- Open `GET /` to use the minimal web UI to start a triage and inspect conversations/state.
+**Note**: MCP tools are hosted externally. The application no longer includes a mock MCP endpoint. Deploy your own MCP server implementing `fetch_logs`, `query_metrics`, and `correlate_evidence` tools, or use existing MCP-compatible services.
+
+## Web UI
+- Open `http://localhost:9100` for interactive demo interface
+- Features:
+  - Pre-loaded demo scenarios (Payment Outage, Database Issues, Auth Errors)
+  - Real-time workflow progress visualization
+  - Agent-by-agent output display with structured JSON
+  - Metrics dashboard (execution time, severity, completion status)
+  - Custom incident input
 
 ## Notes
-- Uses `ModelProvider.openAi()` with `gpt-4o-mini`.
-- Agents share context via `TriageState` (incident, classification JSON, logs/metrics, triage text, remediation, summary).
-- Typed MCP wrappers: `fetch_logs(service, lines)` and `query_metrics(expr, range)` are called by `EvidenceAgent`.
-- `TriageAgent` also exposes generic tool `mcp-call` for ad‑hoc retrieval by the model if needed.
-- Swap models via `application.conf` or environment.
+- Uses `ModelProvider.openAi()` with `gpt-4o-mini` (configurable in `application.conf`).
+- Agents share context via `TriageState` (incident, classification, evidence, triage, knowledge base results, remediation, summary).
+- **EvidenceAgent**: Uses native MCP integration with external tools (requires external MCP server).
+- **KnowledgeBaseAgent**: Uses embedded `@FunctionTool` to search local `knowledge_base/` resources.
+- **TriageAgent**: Uses embedded `@FunctionTool` methods (`assess_impact`, `analyze_patterns`) plus optional `mcp-call` for external data.
+- Workflow includes error recovery: evidence gathering failures failover to triage, remediation failures skip to summary.
+- Session-based memory: All agents in a workflow share the same session ID for bounded context window.
+- Akka SDK version: 3.5.4 (includes native MCP support).
 
 ## Architecture (Mermaid)
 
 ```mermaid
 flowchart LR
-  Browser[Web UI] -->|HTTP| API[TriageEndpoint / MCP Mock]
+  Browser[Web UI] -->|HTTP| UI[UiEndpoint]
+  Browser -->|HTTP| API[TriageEndpoint]
   API -->|start/get| WF[TriageWorkflow]
   WF -->|classify| CA[ClassifierAgent]
   WF -->|gather_evidence| EA[EvidenceAgent]
-  EA -->|fetch_logs| MCP[(MCP Bridge)]
-  EA -->|query_metrics| MCP
+  EA -->|RemoteMcpTools| ExtMCP[(External MCP Server)]
   WF -->|triage| TA[TriageAgent]
-  TA -->|mcp-call| MCP
+  TA -->|@FunctionTool| TA
+  WF -->|query_kb| KBA[KnowledgeBaseAgent]
+  KBA -->|@FunctionTool| KB[(Local Knowledge Base)]
   WF -->|remediate| RA[RemediationAgent]
   WF -->|summarize| SA[SummaryAgent]
   WF -->|update| State[(TriageState)]
@@ -79,8 +96,9 @@ sequenceDiagram
   participant WF as TriageWorkflow
   participant CA as ClassifierAgent
   participant EA as EvidenceAgent
-  participant MCP as MCP Bridge
+  participant ExtMCP as External MCP
   participant TA as TriageAgent
+  participant KBA as KnowledgeBaseAgent
   participant RA as RemediationAgent
   participant SA as SummaryAgent
 
@@ -89,20 +107,24 @@ sequenceDiagram
   WF->>CA: classify(incident)
   CA-->>WF: classification JSON
   WF->>EA: gather(service, expr, range)
-  EA->>MCP: call_tool fetch_logs
-  MCP-->>EA: logs
-  EA->>MCP: call_tool query_metrics
-  MCP-->>EA: metrics
+  EA->>ExtMCP: tools/call fetch_logs
+  ExtMCP-->>EA: logs
+  EA->>ExtMCP: tools/call query_metrics
+  ExtMCP-->>EA: metrics
+  EA->>ExtMCP: tools/call correlate_evidence
+  ExtMCP-->>EA: correlations
   EA-->>WF: evidence JSON
   WF->>TA: triage(enriched context)
-  TA-->>WF: triage text
-  WF->>RA: remediate(incident, classification, evidence, triage)
+  TA-->>WF: triage analysis
+  WF->>KBA: search(service)
+  KBA-->>WF: knowledge base results
+  WF->>RA: remediate(all context)
   RA-->>WF: remediation plan
-  WF->>SA: summarize(...)
-  SA-->>WF: operator summary
-  WF-->>API: ack
+  WF->>SA: summarize(all context)
+  SA-->>WF: multi-audience summary
+  WF-->>API: completed
   UI->>API: GET /triage/{id}
-  API-->>UI: conversations
+  API-->>UI: conversations + state
 ```
 
 
