@@ -11,16 +11,23 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TriageEvaluatorConsumer listens to TriageWorkflow state changes and
- * asynchronously evaluates outputs for toxicity and hallucinations.
+ * evaluates outputs for toxicity and hallucinations.
  *
  * Uses Akka SDK's built-in evaluators:
  * - ToxicityEvaluator: Assesses hateful, inappropriate, or toxic content
  * - HallucinationEvaluator: Detects unsupported facts vs reference text
  *
- * This follows the Akka SDK pattern for async LLM evaluation:
- * - Runs evaluations after workflow completion
- * - Does not block the primary workflow
- * - Results captured for analytics and quality monitoring
+ * This follows the Akka SDK pattern for LLM evaluation:
+ * - Runs evaluations after workflow completion in the consumer
+ * - Consumer runs in background, does not block the workflow response
+ * - Results captured and stored in EvaluationResultsEntity
+ * - Results available for analytics and quality monitoring via dashboards
+ *
+ * Flow:
+ * 1. Workflow completes
+ * 2. This consumer triggers 5 evaluations (synchronous within consumer)
+ * 3. Each evaluation stores results in EvaluationResultsEntity (keyed by workflow ID)
+ * 4. EvaluationMetricsConsumer aggregates results into metrics dashboard
  *
  * NOTE: In production, consider disabling this consumer to avoid LLM costs.
  * Use it in test/staging environments or integration tests only.
@@ -64,75 +71,124 @@ public class TriageEvaluatorConsumer extends Consumer {
 
         // 1. Evaluate summary for toxicity
         if (state.summaryText() != null && !state.summaryText().isBlank()) {
-            logger.info("🛡️  Evaluating summary for toxicity (async)...");
-            // Note: Fire-and-forget - evaluation happens asynchronously
-            componentClient
+            logger.info("🛡️  Evaluating summary for toxicity...");
+            var result = componentClient
                 .forAgent()
                 .inSession(sessionId)
                 .method(ToxicityEvaluator::evaluate)
                 .invoke(state.summaryText());
+
+            logger.info("✅ Summary toxicity evaluation complete - passed: {}", result.passed());
+            var toxResult = new com.pradeepl.triage.domain.EvaluationResultsEntity.ToxicityResult(
+                result.passed(),
+                result.explanation()
+            );
+            componentClient
+                .forKeyValueEntity(state.workflowId())
+                .method(com.pradeepl.triage.domain.EvaluationResultsEntity::recordSummaryToxicity)
+                .invoke(new com.pradeepl.triage.domain.EvaluationResultsEntity.RecordSummaryToxicity(toxResult));
         }
 
         // 2. Evaluate remediation for toxicity
         if (state.remediationText() != null && !state.remediationText().isBlank()) {
-            logger.info("🛡️  Evaluating remediation for toxicity (async)...");
-            componentClient
+            logger.info("🛡️  Evaluating remediation for toxicity...");
+            var result = componentClient
                 .forAgent()
                 .inSession(sessionId)
                 .method(ToxicityEvaluator::evaluate)
                 .invoke(state.remediationText());
+
+            logger.info("✅ Remediation toxicity evaluation complete - passed: {}", result.passed());
+            var toxResult = new com.pradeepl.triage.domain.EvaluationResultsEntity.ToxicityResult(
+                result.passed(),
+                result.explanation()
+            );
+            componentClient
+                .forKeyValueEntity(state.workflowId())
+                .method(com.pradeepl.triage.domain.EvaluationResultsEntity::recordRemediationToxicity)
+                .invoke(new com.pradeepl.triage.domain.EvaluationResultsEntity.RecordRemediationToxicity(toxResult));
         }
 
         // === HALLUCINATION EVALUATIONS ===
 
         // 3. Evaluate evidence for hallucination (against incident)
         if (state.evidenceLogs() != null && !state.evidenceLogs().isBlank()) {
-            logger.info("🔍 Evaluating evidence for hallucinations (async)...");
+            logger.info("🔍 Evaluating evidence for hallucinations...");
             var request = new HallucinationEvaluator.EvaluationRequest(
                 state.incident(),      // query
                 state.incident(),      // reference text
                 state.evidenceLogs()   // answer to evaluate
             );
-            componentClient
+            var result = componentClient
                 .forAgent()
                 .inSession(sessionId)
                 .method(HallucinationEvaluator::evaluate)
                 .invoke(request);
+
+            logger.info("✅ Evidence hallucination evaluation complete - passed: {}", result.passed());
+            var halResult = new com.pradeepl.triage.domain.EvaluationResultsEntity.HallucinationResult(
+                result.passed(),
+                result.explanation()
+            );
+            componentClient
+                .forKeyValueEntity(state.workflowId())
+                .method(com.pradeepl.triage.domain.EvaluationResultsEntity::recordEvidenceHallucination)
+                .invoke(new com.pradeepl.triage.domain.EvaluationResultsEntity.RecordEvidenceHallucination(halResult));
         }
 
         // 4. Evaluate triage analysis for hallucination (against evidence + incident)
         if (state.triageText() != null && !state.triageText().isBlank()) {
-            logger.info("🔍 Evaluating triage analysis for hallucinations (async)...");
+            logger.info("🔍 Evaluating triage analysis for hallucinations...");
             String referenceText = buildTriageReference(state);
             var request = new HallucinationEvaluator.EvaluationRequest(
                 state.incident(),      // query
                 referenceText,         // reference text (incident + evidence + classification)
                 state.triageText()     // answer to evaluate
             );
-            componentClient
+            var result = componentClient
                 .forAgent()
                 .inSession(sessionId)
                 .method(HallucinationEvaluator::evaluate)
                 .invoke(request);
+
+            logger.info("✅ Triage hallucination evaluation complete - passed: {}", result.passed());
+            var halResult = new com.pradeepl.triage.domain.EvaluationResultsEntity.HallucinationResult(
+                result.passed(),
+                result.explanation()
+            );
+            componentClient
+                .forKeyValueEntity(state.workflowId())
+                .method(com.pradeepl.triage.domain.EvaluationResultsEntity::recordTriageHallucination)
+                .invoke(new com.pradeepl.triage.domain.EvaluationResultsEntity.RecordTriageHallucination(halResult));
         }
 
         // 5. Evaluate summary for hallucination (against all workflow outputs)
         if (state.summaryText() != null && !state.summaryText().isBlank()) {
-            logger.info("🔍 Evaluating summary for hallucinations (async)...");
+            logger.info("🔍 Evaluating summary for hallucinations...");
             String referenceText = buildFullReference(state);
             var request = new HallucinationEvaluator.EvaluationRequest(
                 state.incident(),      // query
                 referenceText,         // reference text (all workflow outputs)
                 state.summaryText()    // answer to evaluate
             );
-            componentClient
+            var result = componentClient
                 .forAgent()
                 .inSession(sessionId)
                 .method(HallucinationEvaluator::evaluate)
                 .invoke(request);
+
+            logger.info("✅ Summary hallucination evaluation complete - passed: {}", result.passed());
+            var halResult = new com.pradeepl.triage.domain.EvaluationResultsEntity.HallucinationResult(
+                result.passed(),
+                result.explanation()
+            );
+            componentClient
+                .forKeyValueEntity(state.workflowId())
+                .method(com.pradeepl.triage.domain.EvaluationResultsEntity::recordSummaryHallucination)
+                .invoke(new com.pradeepl.triage.domain.EvaluationResultsEntity.RecordSummaryHallucination(halResult));
         }
 
-        logger.info("🚀 All async evaluations triggered for workflow: {}", state.workflowId());
+        logger.info("🚀 All evaluations complete for workflow: {}", state.workflowId());
 
         return effects().done();
     }
