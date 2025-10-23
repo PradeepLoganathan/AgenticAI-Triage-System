@@ -26,6 +26,26 @@ public class UiEndpoint {
         return loadResource("static-resources/styles.css", MediaTypes.TEXT_CSS.toContentType(HttpCharsets.UTF_8));
     }
 
+    @Get("/dashboard.html")
+    public HttpResponse dashboardHtml() {
+        return loadResource("static-resources/dashboard.html", ContentTypes.TEXT_HTML_UTF8);
+    }
+
+    @Get("/dashboard.js")
+    public HttpResponse dashboardJs() {
+        return loadResource("static-resources/dashboard.js", MediaTypes.APPLICATION_JAVASCRIPT.toContentType(HttpCharsets.UTF_8));
+    }
+
+    @Get("/evaluations.html")
+    public HttpResponse evaluationsHtml() {
+        return loadResource("static-resources/evaluations.html", ContentTypes.TEXT_HTML_UTF8);
+    }
+
+    @Get("/evaluations.js")
+    public HttpResponse evaluationsJs() {
+        return loadResource("static-resources/evaluations.js", MediaTypes.APPLICATION_JAVASCRIPT.toContentType(HttpCharsets.UTF_8));
+    }
+
     private HttpResponse loadResource(String path, ContentType contentType) {
         try (var is = getClass().getClassLoader().getResourceAsStream(path)) {
             if (is == null) {

@@ -12,19 +12,17 @@
             <h1>Akka AI Agent Triage System</h1>
             <p>Intelligent Multi-Agent Incident Response Workflow</p>
             <div class="toolbar">
+                <a href="/" class="btn-secondary active">🚀 Workflow</a>
+                <a href="/dashboard.html" class="btn-secondary">📊 Incident Dashboard</a>
+                <a href="/evaluations.html" class="btn-secondary">🔍 Evaluation Metrics</a>
                 <button class="btn-secondary" id="themeToggle">🌗 Toggle Theme</button>
                 <button class="btn-secondary" id="restartBtn">🔄 Restart</button>
                 <button class="btn-secondary" id="exportTopBtn">📄 Export</button>
             </div>
-            <div class="tab-navigation">
-                <button class="tab-btn active" onclick="switchTab('workflow')">🚀 Workflow</button>
-                <button class="tab-btn" onclick="switchTab('incidents')">📊 Incident Dashboard</button>
-                <button class="tab-btn" onclick="switchTab('evaluations')">🔍 Evaluation Metrics</button>
-            </div>
         </div>
 
-        <!-- Workflow Tab -->
-        <div id="workflow-tab" class="tab-content active">
+        <!-- Workflow Content -->
+        <div class="workflow-content">
             <div class="main-content">
                 <div class="input-section">
                 <div class="demo-scenarios">
@@ -270,70 +268,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Incident Dashboard Tab -->
-        <div id="incidents-tab" class="tab-content">
-            <div class="dashboard-container">
-                <div class="dashboard-header">
-                    <h2 class="dashboard-title">📊 Incident Dashboard</h2>
-                    <button class="refresh-btn" onclick="loadIncidentDashboard()">🔄 Refresh</button>
-                </div>
-
-                <div class="dashboard-grid" id="incident-stats"></div>
-
-                <div class="table-container">
-                    <div class="table-header">Active Incidents</div>
-                    <table class="incidents-table" id="incidents-table">
-                        <thead>
-                            <tr>
-                                <th>Incident ID</th>
-                                <th>Service</th>
-                                <th>Severity</th>
-                                <th>Status</th>
-                                <th>Progress</th>
-                                <th>Team</th>
-                                <th>Started</th>
-                            </tr>
-                        </thead>
-                        <tbody id="incidents-tbody">
-                            <tr><td colspan="7" style="text-align:center; padding:40px; color:#999;">Loading incidents...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Evaluation Metrics Tab -->
-        <div id="evaluations-tab" class="tab-content">
-            <div class="dashboard-container">
-                <div class="dashboard-header">
-                    <h2 class="dashboard-title">🔍 Evaluation Metrics</h2>
-                    <button class="refresh-btn" onclick="loadEvaluationMetrics()">🔄 Refresh</button>
-                </div>
-
-                <div class="dashboard-grid" id="evaluation-stats"></div>
-
-                <div class="table-container">
-                    <div class="table-header">Evaluation Results</div>
-                    <table class="evaluations-table" id="evaluations-table">
-                        <thead>
-                            <tr>
-                                <th>Workflow ID</th>
-                                <th>Summary Toxicity</th>
-                                <th>Remediation Toxicity</th>
-                                <th>Evidence Hallucination</th>
-                                <th>Triage Hallucination</th>
-                                <th>Summary Hallucination</th>
-                                <th>Evaluated At</th>
-                            </tr>
-                        </thead>
-                        <tbody id="evaluations-tbody">
-                            <tr><td colspan="7" style="text-align:center; padding:40px; color:#999;">Loading evaluations...</td></tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>

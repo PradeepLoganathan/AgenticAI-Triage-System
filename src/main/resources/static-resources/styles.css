@@ -43,7 +43,8 @@ body {
     background: var(--panel);
     border-radius: 15px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    overflow: hidden;
+    overflow: visible;
+    min-height: 100vh;
 }
 
 /* Header */
@@ -117,11 +118,8 @@ body {
     background: rgba(255,255,255,0.1);
 }
 
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
+/* Workflow content (no longer using tabs) */
+.workflow-content {
     display: block;
 }
 
@@ -567,8 +565,9 @@ textarea:focus, select:focus, input[type="text"]:focus {
 /* Dashboard Styles */
 .dashboard-container {
     padding: 30px;
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
+    min-height: 600px;
 }
 
 .dashboard-header {
@@ -803,6 +802,51 @@ body[data-theme="dark"] .metric-card {
 body[data-theme="dark"] .timeline-entry {
     background: #0f1420;
     border-left-color: #1b2233;
+}
+
+/* Dark theme for dashboard */
+body[data-theme="dark"] .dashboard-container {
+    background: #0f1420;
+    color: #e5ecf6;
+}
+
+body[data-theme="dark"] .stat-card {
+    background: #0b101a;
+    border-color: #1b2233;
+    color: #e5ecf6;
+}
+
+body[data-theme="dark"] .table-container {
+    background: #0b101a;
+    border-color: #1b2233;
+}
+
+body[data-theme="dark"] .table-header {
+    background: #1b2233;
+    color: #e5ecf6;
+}
+
+body[data-theme="dark"] .incidents-table,
+body[data-theme="dark"] .evaluations-table {
+    background: #0b101a;
+    color: #e5ecf6;
+}
+
+body[data-theme="dark"] .incidents-table th,
+body[data-theme="dark"] .evaluations-table th {
+    background: #1b2233;
+    color: #e5ecf6;
+}
+
+body[data-theme="dark"] .incidents-table td,
+body[data-theme="dark"] .evaluations-table td {
+    border-bottom-color: #1b2233;
+    color: #e5ecf6;
+}
+
+body[data-theme="dark"] .incidents-table tbody tr:hover,
+body[data-theme="dark"] .evaluations-table tbody tr:hover {
+    background: #1b2233;
 }
 
 /* Responsive Design */

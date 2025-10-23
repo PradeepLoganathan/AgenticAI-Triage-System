@@ -731,9 +731,12 @@ Monitoring:
         // =======================
 
         function switchTab(tabName) {
+            console.log('switchTab called with:', tabName);
+
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
+                console.log('Removed active from:', tab.id);
             });
 
             // Remove active class from all tab buttons
@@ -742,7 +745,16 @@ Monitoring:
             });
 
             // Show selected tab
-            document.getElementById(`${tabName}-tab`).classList.add('active');
+            const selectedTab = document.getElementById(`${tabName}-tab`);
+            console.log('Selected tab element:', selectedTab);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+                console.log('Added active class to:', selectedTab.id);
+                console.log('Tab classes:', selectedTab.className);
+                console.log('Tab display style:', getComputedStyle(selectedTab).display);
+            } else {
+                console.error('Tab not found:', `${tabName}-tab`);
+            }
 
             // Highlight selected button by finding the button that matches the tab
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -764,18 +776,23 @@ Monitoring:
         // =======================
 
         async function loadIncidentDashboard() {
+            console.log('Loading incident dashboard...');
             try {
                 // Load stats
                 const statsResp = await fetch('/dashboard/stats');
+                console.log('Stats response status:', statsResp.status);
                 if (statsResp.ok) {
                     const stats = await statsResp.json();
+                    console.log('Stats data:', stats);
                     renderIncidentStats(stats);
                 }
 
                 // Load incidents
                 const incidentsResp = await fetch('/dashboard/incidents');
+                console.log('Incidents response status:', incidentsResp.status);
                 if (incidentsResp.ok) {
                     const data = await incidentsResp.json();
+                    console.log('Incidents data:', data);
                     renderIncidentsTable(data.incidents || []);
                 }
             } catch (error) {
@@ -786,6 +803,7 @@ Monitoring:
         }
 
         function renderIncidentStats(stats) {
+            console.log('renderIncidentStats called with:', stats);
             const statsHtml = `
                 <div class="stat-card">
                     <div class="stat-value">${stats.totalIncidents}</div>
@@ -812,10 +830,18 @@ Monitoring:
                     <div class="stat-label">Avg Progress</div>
                 </div>
             `;
-            document.getElementById('incident-stats').innerHTML = statsHtml;
+            const element = document.getElementById('incident-stats');
+            console.log('incident-stats element:', element);
+            if (element) {
+                element.innerHTML = statsHtml;
+                console.log('Stats HTML updated successfully');
+            } else {
+                console.error('incident-stats element not found!');
+            }
         }
 
         function renderIncidentsTable(incidents) {
+            console.log('renderIncidentsTable called with:', incidents);
             if (incidents.length === 0) {
                 document.getElementById('incidents-tbody').innerHTML =
                     '<tr><td colspan="7" style="text-align:center; padding:40px; color:#999;">No incidents found</td></tr>';
@@ -834,7 +860,14 @@ Monitoring:
                 </tr>
             `).join('');
 
-            document.getElementById('incidents-tbody').innerHTML = rows;
+            const tbody = document.getElementById('incidents-tbody');
+            console.log('incidents-tbody element:', tbody);
+            if (tbody) {
+                tbody.innerHTML = rows;
+                console.log('Incidents table updated successfully with', incidents.length, 'rows');
+            } else {
+                console.error('incidents-tbody element not found!');
+            }
         }
 
         // =======================
@@ -842,18 +875,23 @@ Monitoring:
         // =======================
 
         async function loadEvaluationMetrics() {
+            console.log('Loading evaluation metrics...');
             try {
                 // Load stats
                 const statsResp = await fetch('/evaluations/stats');
+                console.log('Evaluation stats response status:', statsResp.status);
                 if (statsResp.ok) {
                     const stats = await statsResp.json();
+                    console.log('Evaluation stats data:', stats);
                     renderEvaluationStats(stats);
                 }
 
                 // Load evaluations
                 const evaluationsResp = await fetch('/evaluations');
+                console.log('Evaluations response status:', evaluationsResp.status);
                 if (evaluationsResp.ok) {
                     const data = await evaluationsResp.json();
+                    console.log('Evaluations data:', data);
                     renderEvaluationsTable(data.evaluations || []);
                 }
             } catch (error) {
