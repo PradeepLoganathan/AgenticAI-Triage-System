@@ -366,12 +366,7 @@ public class TriageWorkflow extends Workflow<TriageState> {
     // Note: Reset and memory ping helpers were removed here to keep API within
     // the supported Workflow effect methods. Memory/session visibility is
     // exposed via getState(); agent session reuse happens in all steps.
-
-    // Deprecated: Use AgentUtils.extractServiceFromClassification instead
-    private static String extractService(String classificationJson) {
-        return AgentUtils.extractServiceFromClassification(classificationJson);
-    }
-
+    
     private static String toEvidenceJson(TriageState s) {
         String logs = s.evidenceLogs();
         String metrics = s.evidenceMetrics();

@@ -14,7 +14,8 @@ public record TriageState(
         String triageText,
         String remediationText,
         String summaryText,
-        String knowledgeBaseResult
+        String knowledgeBaseResult,
+        EvaluationResults evaluationResults
 ) {
 
     public enum Status { INITIATED, PREPARED, CLASSIFIED, EVIDENCE_COLLECTED, TRIAGED, KNOWLEDGE_BASE_SEARCHED, REMEDIATION_PROPOSED, SUMMARY_READY, COMPLETED }
@@ -69,6 +70,10 @@ public record TriageState(
         return toBuilder().knowledgeBaseResult(result).build();
     }
 
+    public TriageState withEvaluationResults(EvaluationResults results) {
+        return toBuilder().evaluationResults(results).build();
+    }
+
     public static class Builder {
         private String workflowId;
         private List<Conversation> context = new ArrayList<>();
@@ -81,6 +86,7 @@ public record TriageState(
         private String remediationText;
         private String summaryText;
         private String knowledgeBaseResult;
+        private EvaluationResults evaluationResults;
 
         public Builder() {}
 
@@ -96,6 +102,7 @@ public record TriageState(
             this.remediationText = state.remediationText;
             this.summaryText = state.summaryText;
             this.knowledgeBaseResult = state.knowledgeBaseResult;
+            this.evaluationResults = state.evaluationResults;
         }
 
         public Builder workflowId(String workflowId) {
@@ -153,6 +160,11 @@ public record TriageState(
             return this;
         }
 
+        public Builder evaluationResults(EvaluationResults evaluationResults) {
+            this.evaluationResults = evaluationResults;
+            return this;
+        }
+
         public TriageState build() {
             return new TriageState(
                 workflowId,
@@ -165,7 +177,8 @@ public record TriageState(
                 triageText,
                 remediationText,
                 summaryText,
-                knowledgeBaseResult
+                knowledgeBaseResult,
+                evaluationResults != null ? evaluationResults : EvaluationResults.empty()
             );
         }
     }
