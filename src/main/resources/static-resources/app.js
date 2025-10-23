@@ -744,8 +744,12 @@ Monitoring:
             // Show selected tab
             document.getElementById(`${tabName}-tab`).classList.add('active');
 
-            // Highlight selected button
-            event.target.classList.add('active');
+            // Highlight selected button by finding the button that matches the tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
 
             // Load data for the selected tab
             if (tabName === 'incidents') {
