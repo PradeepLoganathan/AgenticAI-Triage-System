@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
  * - Aggregated metrics for dashboard in EvaluationMetrics
  */
 @Consume.FromKeyValueEntity(EvaluationResultsEntity.class)
+@akka.javasdk.annotations.Component(id="evaluation-metrics-consumer")
 public class EvaluationMetricsConsumer extends Consumer {
 
     private static final Logger logger = LoggerFactory.getLogger(EvaluationMetricsConsumer.class);

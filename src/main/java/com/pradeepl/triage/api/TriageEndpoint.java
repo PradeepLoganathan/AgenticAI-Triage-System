@@ -53,7 +53,4 @@ public class TriageEndpoint {
                 .invoke(new TriageWorkflow.Repeat(req.message(), req.times()));
         return HttpResponses.ok(res);
     }
-
-    // Removed reset/memory ping endpoints to keep API aligned with supported
-    // Workflow effect methods. Memory/session visibility is via /state.
 }

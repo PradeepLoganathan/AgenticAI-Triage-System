@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
  * incident dashboard.
  */
 @Consume.FromWorkflow(TriageWorkflow.class)
+@akka.javasdk.annotations.Component(id="incident-metrics-consumer")
 public class IncidentMetricsConsumer extends Consumer {
 
     private static final Logger logger = LoggerFactory.getLogger(IncidentMetricsConsumer.class);
@@ -32,7 +33,10 @@ public class IncidentMetricsConsumer extends Consumer {
             return effects().done();
         }
 
-        logger.debug("Updating incident metrics for: {}", state.workflowId());
+        // Get workflow ID from metadata
+        String workflowId = messageContext().metadata().asCloudEvent().subject().orElse("unknown");
+        
+        logger.debug("Updating incident metrics for: {}", workflowId);
 
         // Extract incident details
         String service = extractService(state.classificationJson());
@@ -45,7 +49,7 @@ public class IncidentMetricsConsumer extends Consumer {
         boolean isActive = state.status() != TriageState.Status.COMPLETED;
 
         var incidentRecord = new IncidentMetrics.IncidentRecord(
-            state.workflowId(),
+            workflowId,
             state.status().name(),
             service,
             severity,
@@ -66,7 +70,7 @@ public class IncidentMetricsConsumer extends Consumer {
             .invoke(new IncidentMetrics.UpdateIncident(incidentRecord));
 
         logger.info("Updated metrics: incident={}, service={}, severity={}, progress={}/7",
-                   state.workflowId(), service, severity, progress);
+                   workflowId, service, severity, progress);
 
         return effects().done();
     }
