@@ -695,6 +695,14 @@ textarea:focus, select:focus, input[type="text"]:focus {
     background: #f8f9fa;
 }
 
+.eval-row:hover {
+    background: #e3f2fd !important;
+}
+
+.details-row td {
+    border-top: none !important;
+}
+
 /* Badges */
 .badge {
     display: inline-block;

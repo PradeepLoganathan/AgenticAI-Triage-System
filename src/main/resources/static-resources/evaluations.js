@@ -79,8 +79,8 @@ function renderEvaluationsTable(evaluations) {
         return;
     }
 
-    const rows = evaluations.map(eval => `
-        <tr>
+    const rows = evaluations.map((eval, index) => `
+        <tr class="eval-row" onclick="toggleDetails('details-${index}')" style="cursor: pointer;">
             <td><strong>${eval.workflowId}</strong></td>
             <td><span class="badge ${eval.summaryToxicityPassed ? 'passed' : 'failed'}">${eval.summaryToxicityPassed ? 'PASS' : 'FAIL'}</span></td>
             <td><span class="badge ${eval.remediationToxicityPassed ? 'passed' : 'failed'}">${eval.remediationToxicityPassed ? 'PASS' : 'FAIL'}</span></td>
@@ -89,9 +89,37 @@ function renderEvaluationsTable(evaluations) {
             <td><span class="badge ${eval.summaryHallucinationPassed ? 'passed' : 'failed'}">${eval.summaryHallucinationPassed ? 'PASS' : 'FAIL'}</span></td>
             <td>${formatDateTime(eval.evaluatedAt)}</td>
         </tr>
+        <tr id="details-${index}" class="details-row" style="display: none;">
+            <td colspan="7" style="background: #f8f9fa; padding: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <strong style="font-size: 1.1em;">🛡️ Toxicity Evaluation Details:</strong>
+                    <pre style="background: white; padding: 15px; border-radius: 5px; margin-top: 10px; white-space: pre-wrap; font-size: 0.9em;">${eval.toxicityExplanation || 'No explanation available'}</pre>
+                </div>
+                <div>
+                    <strong style="font-size: 1.1em;">🔍 Hallucination Evaluation Details:</strong>
+                    <pre style="background: white; padding: 15px; border-radius: 5px; margin-top: 10px; white-space: pre-wrap; font-size: 0.9em;">${eval.hallucinationExplanation || 'No explanation available'}</pre>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>Confidence Scores:</strong>
+                    <div style="margin-top: 5px;">
+                        Toxicity: ${(eval.toxicityConfidence * 100).toFixed(1)}% |
+                        Hallucination: ${(eval.hallucinationConfidence * 100).toFixed(1)}%
+                    </div>
+                </div>
+            </td>
+        </tr>
     `).join('');
 
     document.getElementById('evaluations-tbody').innerHTML = rows;
+}
+
+function toggleDetails(rowId) {
+    const detailsRow = document.getElementById(rowId);
+    if (detailsRow.style.display === 'none') {
+        detailsRow.style.display = 'table-row';
+    } else {
+        detailsRow.style.display = 'none';
+    }
 }
 
 function formatDateTime(dateTimeStr) {

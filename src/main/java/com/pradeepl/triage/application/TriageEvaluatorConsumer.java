@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
  * Use it in test/staging environments or integration tests only.
  */
 @Consume.FromWorkflow(TriageWorkflow.class)
+@akka.javasdk.annotations.Component(id = "triage-evaluator-consumer")
 public class TriageEvaluatorConsumer extends Consumer {
 
     private static final Logger logger = LoggerFactory.getLogger(TriageEvaluatorConsumer.class);

@@ -227,6 +227,17 @@ public class EvaluationResultsEntity extends KeyValueEntity<EvaluationResultsEnt
     }
 
     /**
+     * Get current state (for debugging/monitoring).
+     */
+    public ReadOnlyEffect<State> getState() {
+        var state = currentState();
+        if (state == null) {
+            state = State.empty(commandContext().entityId());
+        }
+        return effects().reply(state);
+    }
+
+    /**
      * Check if all 5 evaluations are complete.
      */
     private boolean checkComplete(ToxicityResult summaryTox, ToxicityResult remediationTox,

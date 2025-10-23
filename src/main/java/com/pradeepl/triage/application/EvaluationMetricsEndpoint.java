@@ -93,6 +93,48 @@ public class EvaluationMetricsEndpoint {
     }
 
     /**
+     * Get evaluation results for a specific workflow (for debugging).
+     */
+    @Get("/workflow/{workflowId}/results")
+    public HttpResponse getWorkflowEvaluationResults(String workflowId) {
+        logger.info("Fetching evaluation results for workflow: {}", workflowId);
+
+        var result = componentClient
+            .forKeyValueEntity(workflowId)
+            .method(com.pradeepl.triage.domain.EvaluationResultsEntity::getState)
+            .invoke();
+
+        return HttpResponses.ok(result);
+    }
+
+    // /**
+    //  * Manually trigger evaluations for a workflow (for debugging).
+    //  */
+    // @akka.javasdk.annotations.http.Post("/workflow/{workflowId}/evaluate")
+    // public HttpResponse manuallyTriggerEvaluation(String workflowId) {
+    //     logger.info("Manually triggering evaluation for workflow: {}", workflowId);
+
+    //     try {
+    //         // Get workflow state
+    //         var state = componentClient
+    //             .forWorkflow(workflowId)
+    //             .method(TriageWorkflow::getState)
+    //             .invoke();
+
+    //         logger.info("Retrieved workflow state for manual evaluation: {}", state);
+
+    //         // Trigger evaluator manually
+    //         var evaluatorConsumer = new TriageEvaluatorConsumer(componentClient);
+    //         evaluatorConsumer.onStateChanged(state);
+
+    //         return HttpResponses.ok("Evaluation triggered for workflow: " + workflowId);
+    //     } catch (Exception e) {
+    //         logger.error("Error triggering manual evaluation", e);
+    //         return HttpResponses.internalServerError("Error: " + e.getMessage());
+    //     }
+    // }
+
+    /**
      * Get evaluation statistics.
      */
     @Get("/stats")
