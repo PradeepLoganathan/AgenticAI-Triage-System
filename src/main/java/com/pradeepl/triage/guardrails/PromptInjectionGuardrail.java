@@ -27,7 +27,6 @@ public class PromptInjectionGuardrail implements TextGuardrail {
         "forget previous",
         "you are now",
         "new instructions:",
-        "system:",
         "override instructions",
         "act as if",
         "pretend you are"
@@ -53,6 +52,12 @@ public class PromptInjectionGuardrail implements TextGuardrail {
                 logger.warn("Prompt injection detected: pattern '{}' found", pattern);
                 return new Result(false, "Potential prompt injection detected: " + pattern);
             }
+        }
+
+        // Check for system: only at start of line (more specific)
+        if (lowerText.matches("(?m)^\\s*system:\\s*.*")) {
+            logger.warn("Prompt injection detected: system override attempt");
+            return new Result(false, "Potential prompt injection detected: system override");
         }
 
         return Result.OK;

@@ -30,7 +30,7 @@ public class PiiGuardrail implements TextGuardrail {
     );
 
     private static final Pattern CREDIT_CARD_PATTERN = Pattern.compile(
-        "\\b(?:\\d{4}[-\\s]?){3}\\d{4}\\b"
+        "\\b\\d{4}[-\\s]?\\d{4,5}[-\\s]?\\d{4}\\b"
     );
 
     private static final Pattern SSN_PATTERN = Pattern.compile(
@@ -41,7 +41,7 @@ public class PiiGuardrail implements TextGuardrail {
 
     public PiiGuardrail(GuardrailContext context) {
         this.context = context;
-        logger.info("PiiGuardrail initialized: {}", context.name());
+        logger.warn("🛡️ PiiGuardrail INITIALIZED: {}", context.name());
     }
 
     @Override
@@ -51,7 +51,7 @@ public class PiiGuardrail implements TextGuardrail {
         }
 
         if (EMAIL_PATTERN.matcher(text).find()) {
-            logger.warn("PII detected: email address");
+            logger.error("🚨 PII DETECTED: email address in text");
             return new Result(false, "Email address detected in text");
         }
 
