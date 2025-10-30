@@ -1,20 +1,15 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.application.agents;
 
 import akka.javasdk.agent.Agent;
 import akka.javasdk.agent.MemoryProvider;
 import akka.javasdk.agent.ModelProvider;
+import akka.javasdk.agent.RemoteMcpTools;
 import akka.javasdk.annotations.Component;
-import akka.javasdk.annotations.FunctionTool;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.InputStream;
-import java.io.IOException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.List;
 
 
 
@@ -109,62 +104,14 @@ public class ClassifierAgent extends Agent {
                                 .withMaxTokens(1500)
                 )
                 .memory(MemoryProvider.limitedWindow())
-                .tools(this)
+                .mcpTools(
+                        RemoteMcpTools.fromService("evidence-tools")
+                                .withAllowedToolNames("get_known_services")
+                )
                 .systemMessage(SYSTEM)
                 .userMessage(contextualPrompt)
                 .thenReply();
     }
     
-    @FunctionTool(name = "get_known_services", description = "Get the complete list of known services to choose from for accurate classification")
-    public String getKnownServices() {
-        logger.info("🔧 ClassifierAgent.getKnownServices() called - Loading services from file");
-        try {
-            logger.debug("🔧 Step 1: Creating ObjectMapper");
-            ObjectMapper mapper = new ObjectMapper();
-            
-            logger.debug("🔧 Step 2: Loading services.json from classpath");
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("services.json");
-            
-            if (inputStream == null) {
-                logger.error("🔧 ERROR: services.json file not found in classpath");
-                return "Error: services.json configuration file not found";
-            }
-            
-            logger.debug("🔧 Step 3: Parsing JSON");
-            JsonNode config = mapper.readTree(inputStream);
-            logger.debug("🔧 Step 3.1: JSON parsed successfully");
-            
-            // Build services list
-            logger.debug("🔧 Step 4: Converting services JSON to List");
-            List<String> services = mapper.convertValue(
-                config.get("services"), 
-                mapper.getTypeFactory().constructCollectionType(List.class, String.class)
-            );
-            logger.debug("🔧 Step 4.1: Services list converted - {} services", services.size());
-            
-            // Build categories section
-            StringBuilder response = new StringBuilder();
-            response.append("Known Services List:\n");
-            response.append(String.join(", ", services));
-            response.append("\n\nService Categories:\n");
-            
-            JsonNode categories = config.get("categories");
-            categories.fieldNames().forEachRemaining(categoryName -> {
-                List<String> categoryServices = mapper.convertValue(
-                    categories.get(categoryName),
-                    mapper.getTypeFactory().constructCollectionType(List.class, String.class)
-                );
-                response.append(String.format("- %s: %s\n", categoryName, String.join(", ", categoryServices)));
-            });
-            
-            // Add usage instructions
-            response.append("\n");
-            response.append(config.get("usage_instructions").asText());
-            logger.info("🔧 ClassifierAgent.getKnownServices() finishing - completed Loading services from file");
-            return response.toString();
-            
-        } catch (IOException e) {
-            return "Error loading services configuration: " + e.getMessage();
-        }
-    }
+
 }

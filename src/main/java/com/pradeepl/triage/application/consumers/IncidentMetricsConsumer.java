@@ -1,13 +1,15 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.application.consumers;
 
 import akka.javasdk.annotations.Consume;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.consumer.Consumer;
+import com.pradeepl.triage.application.IncidentMetrics;
+import com.pradeepl.triage.application.TriageWorkflow;
 import com.pradeepl.triage.domain.TriageState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * IncidentMetricsConsumer updates the incident metrics store as workflows progress.
@@ -54,8 +56,8 @@ public class IncidentMetricsConsumer extends Consumer {
             service,
             severity,
             title,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
+            Instant.now(),
+            Instant.now(),
             confidence,
             escalation,
             progress,
@@ -63,11 +65,11 @@ public class IncidentMetricsConsumer extends Consumer {
             isActive
         );
 
-        // Update metrics entity (use global metrics ID for aggregated view)
+        // Update metrics entity - use workflowId as entity key (one entity per incident)
         componentClient
-            .forKeyValueEntity(METRICS_ENTITY_ID)
+            .forKeyValueEntity(workflowId)
             .method(IncidentMetrics::updateIncident)
-            .invoke(new IncidentMetrics.UpdateIncident(incidentRecord));
+            .invoke(incidentRecord);
 
         logger.info("Updated metrics: incident={}, service={}, severity={}, progress={}/7",
                    workflowId, service, severity, progress);

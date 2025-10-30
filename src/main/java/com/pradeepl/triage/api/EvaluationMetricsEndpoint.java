@@ -1,4 +1,4 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.api;
 
 import akka.http.javadsl.model.HttpResponse;
 import akka.javasdk.annotations.Acl;
@@ -6,9 +6,9 @@ import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.http.HttpResponses;
+import com.pradeepl.triage.application.EvaluationMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.util.stream.Collectors;
 

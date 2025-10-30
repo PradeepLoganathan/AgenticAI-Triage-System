@@ -1,4 +1,4 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.api;
 
 import akka.http.javadsl.model.HttpResponse;
 import akka.javasdk.annotations.Acl;
@@ -6,10 +6,12 @@ import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.http.HttpResponses;
+import com.pradeepl.triage.application.IncidentMetrics;
+import com.pradeepl.triage.application.IncidentMetricsView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +30,6 @@ import java.util.stream.Collectors;
 public class IncidentDashboardEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(IncidentDashboardEndpoint.class);
-    private static final String METRICS_ENTITY_ID = "global-metrics";
 
     private final ComponentClient componentClient;
 
@@ -43,12 +44,12 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getAllIncidents() {
         logger.info("Fetching all incidents");
 
-        var result = componentClient
-            .forKeyValueEntity(METRICS_ENTITY_ID)
-            .method(IncidentMetrics::getAllIncidents)
+        var incidents = componentClient
+            .forView()
+            .method(IncidentMetricsView::getAllIncidents)
             .invoke();
 
-        return HttpResponses.ok(result);
+        return HttpResponses.ok(incidents);
     }
 
     /**
@@ -58,16 +59,12 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getActiveIncidents() {
         logger.info("Fetching active incidents");
 
-        var state = componentClient
-            .forKeyValueEntity(METRICS_ENTITY_ID)
-            .method(IncidentMetrics::getAllIncidents)
+        var incidents = componentClient
+            .forView()
+            .method(IncidentMetricsView::getActiveIncidents)
             .invoke();
 
-        var activeIncidents = state.incidents().stream()
-                .filter(IncidentMetrics.IncidentRecord::isActive)
-                .collect(Collectors.toList());
-
-        return HttpResponses.ok(activeIncidents);
+        return HttpResponses.ok(incidents);
     }
 
     /**
@@ -77,14 +74,10 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getIncidentsByService(String service) {
         logger.info("Fetching incidents for service: {}", service);
 
-        var state = componentClient
-            .forKeyValueEntity(METRICS_ENTITY_ID)
-            .method(IncidentMetrics::getAllIncidents)
-            .invoke();
-
-        var incidents = state.incidents().stream()
-                .filter(i -> service.equals(i.service()))
-                .collect(Collectors.toList());
+        var incidents = componentClient
+            .forView()
+            .method(IncidentMetricsView::getIncidentsByService)
+            .invoke(service);
 
         return HttpResponses.ok(incidents);
     }
@@ -96,14 +89,10 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getIncidentsBySeverity(String severity) {
         logger.info("Fetching incidents with severity: {}", severity);
 
-        var state = componentClient
-            .forKeyValueEntity(METRICS_ENTITY_ID)
-            .method(IncidentMetrics::getAllIncidents)
-            .invoke();
-
-        var incidents = state.incidents().stream()
-                .filter(i -> severity.equals(i.severity()))
-                .collect(Collectors.toList());
+        var incidents = componentClient
+            .forView()
+            .method(IncidentMetricsView::getIncidentsBySeverity)
+            .invoke(severity);
 
         return HttpResponses.ok(incidents);
     }
@@ -115,43 +104,25 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getCriticalIncidents() {
         logger.info("Fetching critical incidents");
 
-        var state = componentClient
-            .forKeyValueEntity(METRICS_ENTITY_ID)
-            .method(IncidentMetrics::getAllIncidents)
+        var incidents = componentClient
+            .forView()
+            .method(IncidentMetricsView::getCriticalOrEscalationIncidents)
             .invoke();
 
-        var criticalIncidents = state.incidents().stream()
-                .filter(i -> "P1".equals(i.severity()) || i.requiresEscalation())
-                .filter(IncidentMetrics.IncidentRecord::isActive)
-                .collect(Collectors.toList());
-
-        return HttpResponses.ok(criticalIncidents);
+        return HttpResponses.ok(incidents);
     }
 
     /**
      * Get dashboard statistics.
+     * Note: For now, use /dashboard/incidents to get all incidents and calculate stats client-side.
+     * TODO: Implement aggregation query in view for better performance.
      */
     @Get("/stats")
     public HttpResponse getStats() {
         logger.info("Fetching dashboard statistics");
 
-        var state = componentClient
-            .forKeyValueEntity(METRICS_ENTITY_ID)
-            .method(IncidentMetrics::getAllIncidents)
-            .invoke();
-
-        var incidents = state.incidents();
-        long total = incidents.size();
-        long active = incidents.stream().filter(IncidentMetrics.IncidentRecord::isActive).count();
-        long p1 = incidents.stream().filter(i -> "P1".equals(i.severity())).count();
-        long p2 = incidents.stream().filter(i -> "P2".equals(i.severity())).count();
-        long escalations = incidents.stream().filter(IncidentMetrics.IncidentRecord::requiresEscalation).count();
-        double avgProgress = incidents.stream()
-            .mapToInt(IncidentMetrics.IncidentRecord::stepProgress)
-            .average()
-            .orElse(0.0);
-
-        var stats = new DashboardStats(total, active, p1, p2, escalations, avgProgress);
+        // Return placeholder stats - clients should use /dashboard/incidents for now
+        var stats = new DashboardStats(0, 0, 0, 0, 0, 0.0);
 
         return HttpResponses.ok(stats);
     }

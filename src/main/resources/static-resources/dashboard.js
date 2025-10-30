@@ -29,7 +29,9 @@ async function loadIncidentDashboard() {
         if (incidentsResp.ok) {
             const data = await incidentsResp.json();
             console.log('Incidents data:', data);
-            renderIncidentsTable(data.incidents || []);
+            // Handle both array and single object responses
+            const incidents = Array.isArray(data) ? data : (data.incidents || [data]);
+            renderIncidentsTable(incidents);
         }
     } catch (error) {
         console.error('Error loading incident dashboard:', error);

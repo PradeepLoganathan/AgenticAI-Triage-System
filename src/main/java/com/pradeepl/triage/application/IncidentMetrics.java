@@ -5,46 +5,22 @@ import akka.javasdk.keyvalueentity.KeyValueEntity;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 
 /**
- * IncidentMetrics stores queryable metrics for incidents.
+ * IncidentMetrics stores metrics for a single incident.
  *
- * This Key-Value Entity maintains:
- * - List of all incidents with their current state
- * - Searchable/filterable incident data
- * - Accessible via HTTP endpoints for dashboards
+ * One entity instance per incident (keyed by incident/workflow ID).
+ * State is automatically persisted and distributed by Akka.
  *
  * Updated by IncidentMetricsConsumer as workflows progress.
+ * Queried via IncidentMetricsView for dashboard aggregations.
  */
 @Component(id="incident-metrics")
-public class IncidentMetrics extends KeyValueEntity<IncidentMetrics.MetricsState> {
+public class IncidentMetrics extends KeyValueEntity<IncidentMetrics.IncidentRecord> {
 
     /**
-     * State holding all incident metrics.
-     */
-    public record MetricsState(
-        List<IncidentRecord> incidents,
-        LocalDateTime lastUpdated
-    ) {
-        @JsonCreator
-        public MetricsState(
-            @JsonProperty("incidents") List<IncidentRecord> incidents,
-            @JsonProperty("lastUpdated") LocalDateTime lastUpdated
-        ) {
-            this.incidents = incidents != null ? incidents : new ArrayList<>();
-            this.lastUpdated = lastUpdated != null ? lastUpdated : LocalDateTime.now();
-        }
-
-        public static MetricsState empty() {
-            return new MetricsState(new ArrayList<>(), LocalDateTime.now());
-        }
-    }
-
-    /**
-     * Individual incident record.
+     * Incident record - this is the entity state.
      */
     public record IncidentRecord(
         String incidentId,
@@ -52,8 +28,8 @@ public class IncidentMetrics extends KeyValueEntity<IncidentMetrics.MetricsState
         String service,
         String severity,
         String title,
-        LocalDateTime startTime,
-        LocalDateTime lastUpdate,
+        Instant startTime,
+        Instant lastUpdate,
         double overallConfidence,
         boolean requiresEscalation,
         int stepProgress,
@@ -67,8 +43,8 @@ public class IncidentMetrics extends KeyValueEntity<IncidentMetrics.MetricsState
             @JsonProperty("service") String service,
             @JsonProperty("severity") String severity,
             @JsonProperty("title") String title,
-            @JsonProperty("startTime") LocalDateTime startTime,
-            @JsonProperty("lastUpdate") LocalDateTime lastUpdate,
+            @JsonProperty("startTime") Instant startTime,
+            @JsonProperty("lastUpdate") Instant lastUpdate,
             @JsonProperty("overallConfidence") double overallConfidence,
             @JsonProperty("requiresEscalation") boolean requiresEscalation,
             @JsonProperty("stepProgress") int stepProgress,
@@ -91,40 +67,19 @@ public class IncidentMetrics extends KeyValueEntity<IncidentMetrics.MetricsState
     }
 
     /**
-     * Command to add or update an incident.
+     * Update incident metrics.
+     * Simply replaces the entire state - no manual list management needed!
      */
-    public record UpdateIncident(IncidentRecord incident) {}
-
-    /**
-     * Command to get all incidents.
-     */
-    public record GetAllIncidents() {}
-
-    public Effect<String> updateIncident(UpdateIncident cmd) {
-        var state = currentState();
-        if (state == null) {
-            state = MetricsState.empty();
-        }
-
-        // Remove existing record if present
-        var incidents = new ArrayList<>(state.incidents());
-        incidents.removeIf(i -> i.incidentId().equals(cmd.incident().incidentId()));
-
-        // Add updated record
-        incidents.add(cmd.incident());
-
-        var newState = new MetricsState(incidents, LocalDateTime.now());
-
+    public Effect<String> updateIncident(IncidentRecord incident) {
         return effects()
-            .updateState(newState)
+            .updateState(incident)
             .thenReply("Updated");
     }
 
-    public ReadOnlyEffect<MetricsState> getAllIncidents() {
-        var state = currentState();
-        if (state == null) {
-            state = MetricsState.empty();
-        }
-        return effects().reply(state);
+    /**
+     * Get current incident metrics.
+     */
+    public ReadOnlyEffect<IncidentRecord> getIncident() {
+        return effects().reply(currentState());
     }
 }

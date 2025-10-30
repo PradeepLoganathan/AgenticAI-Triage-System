@@ -1,4 +1,4 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.application.agents;
 
 import akka.javasdk.annotations.Component;
 import akka.javasdk.agent.Agent;

@@ -53,9 +53,23 @@ public class AgentUtils {
         try {
             JsonNode node = objectMapper.readTree(agentResponse);
             
+            // Look for confidence in root_cause_analysis.primary_hypothesis (TriageAgent format)
+            if (node.has("root_cause_analysis")) {
+                JsonNode rca = node.get("root_cause_analysis");
+                if (rca.has("primary_hypothesis")) {
+                    JsonNode hypothesis = rca.get("primary_hypothesis");
+                    if (hypothesis.has("confidence")) {
+                        return hypothesis.get("confidence").asDouble();
+                    }
+                }
+            }
+            
             // Look for confidence object
             if (node.has("confidence")) {
                 JsonNode confidence = node.get("confidence");
+                if (confidence.isNumber()) {
+                    return confidence.asDouble();
+                }
                 if (confidence.has(scoreType)) {
                     return confidence.get(scoreType).asDouble();
                 }

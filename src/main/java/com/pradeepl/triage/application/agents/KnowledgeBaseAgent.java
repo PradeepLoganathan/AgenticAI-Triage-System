@@ -1,4 +1,4 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.application.agents;
 
 import akka.javasdk.agent.Agent;
 import akka.javasdk.agent.ModelProvider;

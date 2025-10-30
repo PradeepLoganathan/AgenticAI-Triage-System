@@ -1,8 +1,9 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.application.consumers;
 
 import akka.javasdk.annotations.Consume;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.consumer.Consumer;
+import com.pradeepl.triage.application.EvaluationMetrics;
 import com.pradeepl.triage.domain.EvaluationResultsEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

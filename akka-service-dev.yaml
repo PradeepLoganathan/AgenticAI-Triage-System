@@ -1,0 +1,36 @@
+name: triage-system-dev
+service:
+  resources:
+    runtime:
+      mode: embedded
+  image: acr.europe-west1.akka.io/pradeepl-akka/agentic-triage-system:1.20251023
+
+  # Lower resources for development
+  memory:
+    min: 256Mi
+    max: 1Gi
+  cpu:
+    min: 0.25
+    max: 1.0
+
+  # Single instance (no scaling)
+  scaling:
+    min: 1
+    max: 1
+
+  # Environment variables
+  env:
+    - name: OPENAI_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: openai-api-key-dev
+          key: OPENAI_API_KEY
+
+    - name: MCP_HTTP_URL
+      value: "http://localhost:9100/mcp"
+
+    - name: AKKA_LOGLEVEL
+      value: "DEBUG"
+
+    - name: JAVA_OPTS
+      value: "-Xmx768m -Xms256m -XX:+UseG1GC"

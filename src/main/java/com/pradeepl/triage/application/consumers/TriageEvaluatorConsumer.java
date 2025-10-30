@@ -1,10 +1,11 @@
-package com.pradeepl.triage.application;
+package com.pradeepl.triage.application.consumers;
 
 import akka.javasdk.annotations.Consume;
 import akka.javasdk.agent.evaluator.HallucinationEvaluator;
 import akka.javasdk.agent.evaluator.ToxicityEvaluator;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.consumer.Consumer;
+import com.pradeepl.triage.application.TriageWorkflow;
 import com.pradeepl.triage.domain.TriageState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
