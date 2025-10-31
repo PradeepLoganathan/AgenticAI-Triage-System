@@ -6,13 +6,9 @@ import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.http.HttpResponses;
-import com.pradeepl.triage.application.IncidentMetrics;
 import com.pradeepl.triage.application.IncidentMetricsView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * IncidentDashboardEndpoint provides HTTP API for querying incident metrics.
@@ -46,8 +42,8 @@ public class IncidentDashboardEndpoint {
 
         var incidents = componentClient
             .forView()
-            .method(IncidentMetricsView::getAllIncidents)
-            .invoke();
+            .stream(IncidentMetricsView::getAllIncidents)
+            .source();
 
         return HttpResponses.ok(incidents);
     }
@@ -61,8 +57,8 @@ public class IncidentDashboardEndpoint {
 
         var incidents = componentClient
             .forView()
-            .method(IncidentMetricsView::getActiveIncidents)
-            .invoke();
+            .stream(IncidentMetricsView::getActiveIncidents)
+            .source();
 
         return HttpResponses.ok(incidents);
     }
@@ -76,8 +72,8 @@ public class IncidentDashboardEndpoint {
 
         var incidents = componentClient
             .forView()
-            .method(IncidentMetricsView::getIncidentsByService)
-            .invoke(service);
+            .stream(IncidentMetricsView::getIncidentsByService)
+            .source(service);
 
         return HttpResponses.ok(incidents);
     }
@@ -91,8 +87,8 @@ public class IncidentDashboardEndpoint {
 
         var incidents = componentClient
             .forView()
-            .method(IncidentMetricsView::getIncidentsBySeverity)
-            .invoke(severity);
+            .stream(IncidentMetricsView::getIncidentsBySeverity)
+            .source(severity);
 
         return HttpResponses.ok(incidents);
     }
@@ -106,8 +102,8 @@ public class IncidentDashboardEndpoint {
 
         var incidents = componentClient
             .forView()
-            .method(IncidentMetricsView::getCriticalOrEscalationIncidents)
-            .invoke();
+            .stream(IncidentMetricsView::getCriticalOrEscalationIncidents)
+            .source();
 
         return HttpResponses.ok(incidents);
     }

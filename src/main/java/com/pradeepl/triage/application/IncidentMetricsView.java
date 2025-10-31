@@ -2,7 +2,6 @@ package com.pradeepl.triage.application;
 
 import akka.javasdk.annotations.Component;
 import akka.javasdk.annotations.Consume;
-import akka.javasdk.annotations.DeleteHandler;
 import akka.javasdk.annotations.Query;
 import akka.javasdk.view.TableUpdater;
 import akka.javasdk.view.View;
@@ -30,32 +29,32 @@ public class IncidentMetricsView extends View {
     }
 
     @Query("SELECT * FROM incident_metrics_view")
-    public QueryEffect<IncidentMetrics.IncidentRecord> getAllIncidents() {
-        return queryResult();
+    public QueryStreamEffect<IncidentMetrics.IncidentRecord> getAllIncidents() {
+        return queryStreamResult();
     }
 
     @Query("SELECT * FROM incident_metrics_view WHERE isActive = true")
-    public QueryEffect<IncidentMetrics.IncidentRecord> getActiveIncidents() {
-        return queryResult();
+    public QueryStreamEffect<IncidentMetrics.IncidentRecord> getActiveIncidents() {
+        return queryStreamResult();
     }
 
     @Query("SELECT * FROM incident_metrics_view WHERE service = :service")
-    public QueryEffect<IncidentMetrics.IncidentRecord> getIncidentsByService(String service) {
-        return queryResult();
+    public QueryStreamEffect<IncidentMetrics.IncidentRecord> getIncidentsByService(String service) {
+        return queryStreamResult();
     }
 
     @Query("SELECT * FROM incident_metrics_view WHERE severity = :severity")
-    public QueryEffect<IncidentMetrics.IncidentRecord> getIncidentsBySeverity(String severity) {
-        return queryResult();
+    public QueryStreamEffect<IncidentMetrics.IncidentRecord> getIncidentsBySeverity(String severity) {
+        return queryStreamResult();
     }
 
     @Query("SELECT * FROM incident_metrics_view WHERE severity = 'P1' AND isActive = true")
-    public QueryEffect<IncidentMetrics.IncidentRecord> getCriticalIncidents() {
-        return queryResult();
+    public QueryStreamEffect<IncidentMetrics.IncidentRecord> getCriticalIncidents() {
+        return queryStreamResult();
     }
 
     @Query("SELECT * FROM incident_metrics_view WHERE (severity = 'P1' OR requiresEscalation = true) AND isActive = true")
-    public QueryEffect<IncidentMetrics.IncidentRecord> getCriticalOrEscalationIncidents() {
-        return queryResult();
+    public QueryStreamEffect<IncidentMetrics.IncidentRecord> getCriticalOrEscalationIncidents() {
+        return queryStreamResult();
     }
 }
