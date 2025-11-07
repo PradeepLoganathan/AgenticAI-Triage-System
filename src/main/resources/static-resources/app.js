@@ -75,6 +75,9 @@ Monitoring:
 - All health checks passing
 - Performance metrics within normal ranges
 - Feature flags available for rollback`
+            },
+            'toxic-test': {
+                description: `The stupid system is down and it's complete shit. This damn service keeps failing and it's a total mess.`
             }
         };
 
@@ -225,6 +228,15 @@ Monitoring:
                 if (response.ok) {
                     // Start polling for updates
                     startPolling();
+                } else if (response.status === 400) {
+                    // Handle guardrail violations and other errors
+                    const errorData = await response.json();
+                    if (errorData.error === 'GUARDRAIL_VIOLATION') {
+                        showGuardrailError(errorData.message);
+                    } else {
+                        showError('Failed to start workflow: ' + (errorData.message || response.statusText));
+                    }
+                    resetUI();
                 } else {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -711,6 +723,28 @@ Monitoring:
             form.insertBefore(errorDiv, form.firstChild);
             
             setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // Show guardrail violation warning
+        function showGuardrailError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'guardrail-error';
+            errorDiv.innerHTML = `
+                <div style="display: flex; align-items: start; gap: 12px;">
+                    <div style="font-size: 24px;">🛡️</div>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 8px;">⚠️ Input Blocked by Guardrail</div>
+                        <div style="margin-bottom: 8px;">${message}</div>
+                        <div style="font-size: 0.9em; opacity: 0.9;">Please revise your incident description to use professional language.</div>
+                    </div>
+                </div>
+            `;
+            errorDiv.style.margin = '20px 0';
+            
+            const form = document.getElementById('triageForm');
+            form.insertBefore(errorDiv, form.firstChild);
+            
+            setTimeout(() => errorDiv.remove(), 8000);
         }
 
         // Show success message

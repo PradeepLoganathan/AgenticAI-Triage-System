@@ -455,6 +455,22 @@ textarea:focus, select:focus, input[type="text"]:focus {
     border-left: 4px solid #dc3545;
 }
 
+.guardrail-error {
+    background: #fff3cd;
+    color: #856404;
+    padding: 16px;
+    border-radius: 8px;
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
 .success {
     background: #d4edda;
     color: #155724;
@@ -810,6 +826,12 @@ body[data-theme="dark"] .metric-card {
 body[data-theme="dark"] .timeline-entry {
     background: #0f1420;
     border-left-color: #1b2233;
+}
+
+body[data-theme="dark"] .guardrail-error {
+    background: #2d2416;
+    color: #ffc107;
+    border-color: #ffc107;
 }
 
 /* Dark theme for dashboard */
