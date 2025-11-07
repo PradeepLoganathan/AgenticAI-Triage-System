@@ -102,9 +102,9 @@ public class RemediationAgent extends Agent {
         "production", "critical", "primary", "master", "leader"
     );
     
-    private static final Set<String> ROLLBACK_FRIENDLY_ACTIONS = Set.of(
-        "feature-flag", "config-change", "deployment", "routing", "scaling"
-    );
+    // private static final Set<String> ROLLBACK_FRIENDLY_ACTIONS = Set.of(
+    //     "feature-flag", "config-change", "deployment", "routing", "scaling"
+    // );
 
     
 

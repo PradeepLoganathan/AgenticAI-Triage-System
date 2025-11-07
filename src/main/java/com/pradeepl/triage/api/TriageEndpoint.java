@@ -24,10 +24,26 @@ public class TriageEndpoint {
 
     @Post
     public HttpResponse start(String triageId, StartRequest req) {
-        var res = client.forWorkflow(triageId)
-            .method(TriageWorkflow::start)
-            .invoke(new TriageWorkflow.StartTriage(req.incident()));
-        return HttpResponses.ok(res);
+        try {
+            var res = client.forWorkflow(triageId)
+                .method(TriageWorkflow::start)
+                .invoke(new TriageWorkflow.StartTriage(req.incident()));
+            return HttpResponses.ok(res);
+        } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : e.toString();
+            
+            // Check for guardrail violations (profanity, toxic content, PII, etc.)
+            if (errorMsg.contains("Offensive language") || errorMsg.contains("Profanity") ||
+                errorMsg.contains("profanity") || errorMsg.contains("Toxic") || 
+                errorMsg.contains("toxic") || errorMsg.contains("PII") ||
+                errorMsg.contains("guardrail") || errorMsg.contains("Guardrail")) {
+                return HttpResponses.badRequest("{\"error\":\"GUARDRAIL_VIOLATION\",\"message\":\"" + 
+                    errorMsg.replace("\"", "\\\"").replace("\n", " ") + "\"}");
+            }
+            
+            return HttpResponses.badRequest("{\"error\":\"WORKFLOW_ERROR\",\"message\":\"" + 
+                errorMsg.replace("\"", "\\\"").replace("\n", " ") + "\"}");
+        }
     }
 
     @Get
