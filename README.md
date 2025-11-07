@@ -6,7 +6,7 @@ A production-ready multi-agent incident triage system orchestrated by Akka Java 
 - `ClassifierAgent`: classifies incident (service, severity, domain) with structured reasoning and confidence scores.
 - `EvidenceAgent`: gathers evidence via native MCP tools from external service (`fetch_logs`, `query_metrics`, `correlate_evidence`).
 - `TriageAgent`: performs systematic diagnosis using 5 Whys methodology, impact assessment, and pattern analysis.
-- `KnowledgeBaseAgent`: searches local knowledge base (runbooks, incident reports) using embedded function tools.
+- `KnowledgeBaseAgent`: accesses service runbooks via MCP resources from external evidence-tools service.
 - `RemediationAgent`: proposes risk-aware staged remediation plans with rollback strategies.
 - `SummaryAgent`: produces multi-audience summaries (executive, technical, customer support).
 - `TriageWorkflow`: orchestrates classify → gather_evidence → triage → query_knowledge_base → remediate → summarize → finalize.
@@ -54,7 +54,7 @@ A production-ready multi-agent incident triage system orchestrated by Akka Java 
 - Uses `ModelProvider.openAi()` with `gpt-4o-mini` (configurable in `application.conf`).
 - Agents share context via `TriageState` (incident, classification, evidence, triage, knowledge base results, remediation, summary).
 - **EvidenceAgent**: Uses native MCP integration with external MCP server for logs and metrics (no local mock data).
-- **KnowledgeBaseAgent**: Uses embedded `@FunctionTool` to search local `knowledge_base/` resources (runbooks, incident reports).
+- **KnowledgeBaseAgent**: Uses native MCP integration with external MCP server to access runbooks via `kb://runbooks/{serviceName}` resources.
 - **TriageAgent**: Uses embedded `@FunctionTool` methods (`assess_impact`, `analyze_patterns`) plus optional `mcp-call` for external data.
 - Workflow includes error recovery: evidence gathering failures failover to triage, remediation failures skip to summary.
 - Session-based memory: All agents in a workflow share the same session ID for bounded context window.
