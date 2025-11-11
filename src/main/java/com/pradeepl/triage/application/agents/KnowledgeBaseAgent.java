@@ -39,7 +39,7 @@ public class KnowledgeBaseAgent extends Agent {
 
     public Effect<String> search(String query) {
         logger.info("🧠 KnowledgeBaseAgent.search() - invoking model with MCP resources for query: {}", query);
-        logger.info("🔗 Using MCP resources from evidence-tools service");
+        logger.info("🔗 Using MCP resources from knowledge-base-mcp-server (port 9300)");
 
         return effects()
                 .model(
@@ -51,8 +51,7 @@ public class KnowledgeBaseAgent extends Agent {
                 )
                 .memory(MemoryProvider.limitedWindow())
                 .mcpTools(
-                        RemoteMcpTools.fromService("evidence-tools")
-                        // No .withAllowedToolNames() - this gives access to ALL tools AND resources
+                        RemoteMcpTools.fromService("knowledge-base-mcp-server")
                 )
                 .systemMessage(SYSTEM)
                 .userMessage("Query: " + (query == null ? "" : query))

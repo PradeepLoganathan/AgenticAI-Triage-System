@@ -91,7 +91,7 @@ public class EvidenceAgent extends Agent {
         );
 
         logger.debug("EvidenceAgent prompt length: {} chars", contextualPrompt.length());
-        logger.info("🔍 Using native MCP tools from evidence-tools endpoint");
+        logger.info("🔍 Using native MCP tools from evidence-mcp-server (port 9200)");
 
         return effects()
                 .model(
@@ -103,7 +103,7 @@ public class EvidenceAgent extends Agent {
                 )
                 .memory(MemoryProvider.limitedWindow())
                 .mcpTools(
-                        RemoteMcpTools.fromService("evidence-tools")
+                        RemoteMcpTools.fromService("evidence-mcp-server")
                                 .withAllowedToolNames("fetch_logs", "query_metrics", "correlate_evidence")
                 )
                 .systemMessage(SYSTEM)
