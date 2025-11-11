@@ -14,7 +14,7 @@
     <packaging>jar</packaging>
 
   <name>agentic-triage-system</name>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -29,5 +29,22 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <configuration>
+          <environmentVariables>
+            <!-- Disable OpenTelemetry exporters in development -->
+            <OTEL_TRACES_EXPORTER>none</OTEL_TRACES_EXPORTER>
+            <OTEL_METRICS_EXPORTER>none</OTEL_METRICS_EXPORTER>
+            <OTEL_LOGS_EXPORTER>none</OTEL_LOGS_EXPORTER>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

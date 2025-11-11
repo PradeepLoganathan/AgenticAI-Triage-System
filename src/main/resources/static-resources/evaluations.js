@@ -43,7 +43,16 @@ function renderEvaluationStats(stats) {
     const total = stats.totalEvaluations || 0;
     const passRate = total > 0 ? ((totalPassed / total) * 100).toFixed(1) : 0;
 
+    const getVariant = (passCount, totalCount) => {
+        if (totalCount === 0) return '';
+        const rate = (passCount / totalCount) * 100;
+        if (rate === 100) return 'success';
+        if (rate >= 50) return 'warning';
+        return 'danger';
+    };
+
     const statsHtml = `
+        <!-- Summary Metrics -->
         <div class="stat-card">
             <div class="stat-value">${stats.totalEvaluations}</div>
             <div class="stat-label">Total Evaluations</div>
@@ -56,17 +65,47 @@ function renderEvaluationStats(stats) {
             <div class="stat-value">${passRate}%</div>
             <div class="stat-label">Pass Rate</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value">${stats.summaryToxicityPassCount}</div>
-            <div class="stat-label">Summary Toxicity ✓</div>
+
+        <!-- Section Header: Toxicity -->
+        <div style="grid-column: 1 / -1; padding: 20px 0 10px 0;">
+            <h3 style="margin: 0; color: #333; font-size: 1.1em;">🛡️ Toxicity Checks (Non-harmful content)</h3>
         </div>
-        <div class="stat-card">
-            <div class="stat-value">${stats.evidenceHallucinationPassCount}</div>
-            <div class="stat-label">Evidence Hallucination ✓</div>
+
+        <!-- Toxicity Metrics -->
+        <div class="stat-card ${getVariant(stats.summaryToxicityPassCount, total)}">
+            <div class="stat-value">${stats.summaryToxicityPassCount}/${total}</div>
+            <div class="stat-label">Summary Toxicity</div>
+        </div>
+        <div class="stat-card ${getVariant(stats.remediationToxicityPassCount, total)}">
+            <div class="stat-value">${stats.remediationToxicityPassCount}/${total}</div>
+            <div class="stat-label">Remediation Toxicity</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">${(stats.averageToxicityConfidence * 100).toFixed(1)}%</div>
-            <div class="stat-label">Avg Toxicity Confidence</div>
+            <div class="stat-label">Avg Confidence</div>
+        </div>
+
+        <!-- Section Header: Hallucination -->
+        <div style="grid-column: 1 / -1; padding: 20px 0 10px 0;">
+            <h3 style="margin: 0; color: #333; font-size: 1.1em;">🔍 Hallucination Checks (Factual accuracy)</h3>
+        </div>
+
+        <!-- Hallucination Metrics -->
+        <div class="stat-card ${getVariant(stats.evidenceHallucinationPassCount, total)}">
+            <div class="stat-value">${stats.evidenceHallucinationPassCount}/${total}</div>
+            <div class="stat-label">Evidence Factual</div>
+        </div>
+        <div class="stat-card ${getVariant(stats.triageHallucinationPassCount, total)}">
+            <div class="stat-value">${stats.triageHallucinationPassCount}/${total}</div>
+            <div class="stat-label">Triage Factual</div>
+        </div>
+        <div class="stat-card ${getVariant(stats.summaryHallucinationPassCount, total)}">
+            <div class="stat-value">${stats.summaryHallucinationPassCount}/${total}</div>
+            <div class="stat-label">Summary Factual</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${(stats.averageHallucinationConfidence * 100).toFixed(1)}%</div>
+            <div class="stat-label">Avg Confidence</div>
         </div>
     `;
     document.getElementById('evaluation-stats').innerHTML = statsHtml;

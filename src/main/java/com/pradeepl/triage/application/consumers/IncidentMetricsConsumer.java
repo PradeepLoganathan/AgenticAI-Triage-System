@@ -4,6 +4,7 @@ import akka.javasdk.annotations.Consume;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.consumer.Consumer;
 import com.pradeepl.triage.application.IncidentMetrics;
+import com.pradeepl.triage.application.IncidentRegistry;
 import com.pradeepl.triage.application.TriageWorkflow;
 import com.pradeepl.triage.domain.TriageState;
 import org.slf4j.Logger;
@@ -65,10 +66,16 @@ public class IncidentMetricsConsumer extends Consumer {
             isActive
         );
 
-        // Update metrics entity - use workflowId as entity key (one entity per incident)
+        // Update individual metrics entity (keep for backward compatibility)
         componentClient
             .forKeyValueEntity(workflowId)
             .method(IncidentMetrics::updateIncident)
+            .invoke(incidentRecord);
+
+        // Update central incident registry (for dashboard)
+        componentClient
+            .forKeyValueEntity("global")
+            .method(IncidentRegistry::updateIncident)
             .invoke(incidentRecord);
 
         logger.info("Updated metrics: incident={}, service={}, severity={}, progress={}/7",

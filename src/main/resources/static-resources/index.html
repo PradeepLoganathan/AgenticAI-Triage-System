@@ -27,21 +27,29 @@
                 <div class="input-section">
                 <div class="demo-scenarios">
                     <h3>Demo Scenarios</h3>
-                    <button class="scenario-btn" onclick="loadScenario('payment-outage')">
-                        Payment Service Outage (P1)
-                    </button>
-                    <button class="scenario-btn" onclick="loadScenario('database-slow')">
-                        Database Performance Degradation (P2)
-                    </button>
-                    <button class="scenario-btn" onclick="loadScenario('auth-errors')">
-                        Authentication Service Errors (P2)
-                    </button>
-                    <button class="scenario-btn" onclick="loadScenario('deployment-issue')">
-                        Post-Deployment Issues (P3)
-                    </button>
-                    <button class="scenario-btn" onclick="loadScenario('toxic-test')" style="background: #fff3cd; border-color: #ffc107;">
-                        🛡️ Test Guardrail (Toxic Input)
-                    </button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="scenarioSelect" onchange="handleScenarioChange()" style="flex: 1; padding: 10px; font-size: 14px; border: 1px solid #ddd; border-radius: 5px; background: white; cursor: pointer;">
+                            <option value="">Select a demo scenario...</option>
+                            <optgroup label="Real Incident Scenarios">
+                                <option value="payment-outage">Payment Service Outage (P1)</option>
+                                <option value="database-slow">Database Performance Degradation (P2)</option>
+                                <option value="auth-errors">Authentication Service Errors (P2)</option>
+                                <option value="deployment-issue">Post-Deployment Issues (P3)</option>
+                            </optgroup>
+                            <optgroup label="Guardrail Tests">
+                                <option value="toxic-test">🛡️ Profanity Guard Test</option>
+                                <option value="prompt-injection">🛡️ Prompt Injection Test #1 (Ignore Instructions)</option>
+                                <option value="prompt-injection-override">🛡️ Prompt Injection Test #2 (System Override)</option>
+                                <option value="prompt-injection-role">🛡️ Prompt Injection Test #3 (Role Manipulation)</option>
+                                <option value="data-leakage-aws">🛡️ Data Leakage Test - AWS Keys</option>
+                                <option value="data-leakage-api">🛡️ Data Leakage Test - API Keys</option>
+                                <option value="data-leakage-db">🛡️ Data Leakage Test - Database Password</option>
+                                <option value="data-leakage-keys">🛡️ Data Leakage Test - Private Key</option>
+                                <option value="data-leakage-jwt">🛡️ Data Leakage Test - JWT Token</option>
+                            </optgroup>
+                        </select>
+                        <button class="btn-secondary" onclick="loadSelectedScenario()" style="white-space: nowrap;">Load Scenario</button>
+                    </div>
                 </div>
 
                 <form id="triageForm">

@@ -6,12 +6,18 @@ import akka.javasdk.annotations.http.Get;
 import akka.javasdk.annotations.http.HttpEndpoint;
 import akka.javasdk.client.ComponentClient;
 import akka.javasdk.http.HttpResponses;
-import com.pradeepl.triage.application.IncidentMetricsView;
+import com.pradeepl.triage.application.IncidentMetrics;
+import com.pradeepl.triage.application.IncidentRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * IncidentDashboardEndpoint provides HTTP API for querying incident metrics.
+ *
+ * Uses IncidentRegistry (single entity with all incidents) for simple querying.
+ * No streaming, no views, no complexity - just simple List returns!
  *
  * Endpoints:
  * - GET /dashboard/incidents - Get all incidents
@@ -35,17 +41,25 @@ public class IncidentDashboardEndpoint {
 
     /**
      * Get all incidents.
+     * Simple query to the central registry - returns a plain List!
      */
     @Get("/incidents")
     public HttpResponse getAllIncidents() {
         logger.info("Fetching all incidents");
 
-        var incidents = componentClient
-            .forView()
-            .stream(IncidentMetricsView::getAllIncidents)
-            .source();
+        try {
+            var incidents = componentClient
+                .forKeyValueEntity("global")
+                .method(IncidentRegistry::getAllIncidents)
+                .invoke();
 
-        return HttpResponses.ok(incidents);
+            logger.info("Returning {} incidents", incidents.size());
+            return HttpResponses.ok(incidents);
+
+        } catch (Exception e) {
+            logger.error("Error fetching incidents", e);
+            return HttpResponses.ok(List.of());
+        }
     }
 
     /**
@@ -55,12 +69,17 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getActiveIncidents() {
         logger.info("Fetching active incidents");
 
-        var incidents = componentClient
-            .forView()
-            .stream(IncidentMetricsView::getActiveIncidents)
-            .source();
+        try {
+            var incidents = componentClient
+                .forKeyValueEntity("global")
+                .method(IncidentRegistry::getActiveIncidents)
+                .invoke();
 
-        return HttpResponses.ok(incidents);
+            return HttpResponses.ok(incidents);
+        } catch (Exception e) {
+            logger.error("Error fetching active incidents", e);
+            return HttpResponses.ok(List.of());
+        }
     }
 
     /**
@@ -70,12 +89,17 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getIncidentsByService(String service) {
         logger.info("Fetching incidents for service: {}", service);
 
-        var incidents = componentClient
-            .forView()
-            .stream(IncidentMetricsView::getIncidentsByService)
-            .source(service);
+        try {
+            var incidents = componentClient
+                .forKeyValueEntity("global")
+                .method(IncidentRegistry::getIncidentsByService)
+                .invoke(service);
 
-        return HttpResponses.ok(incidents);
+            return HttpResponses.ok(incidents);
+        } catch (Exception e) {
+            logger.error("Error fetching incidents for service: {}", service, e);
+            return HttpResponses.ok(List.of());
+        }
     }
 
     /**
@@ -85,12 +109,17 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getIncidentsBySeverity(String severity) {
         logger.info("Fetching incidents with severity: {}", severity);
 
-        var incidents = componentClient
-            .forView()
-            .stream(IncidentMetricsView::getIncidentsBySeverity)
-            .source(severity);
+        try {
+            var incidents = componentClient
+                .forKeyValueEntity("global")
+                .method(IncidentRegistry::getIncidentsBySeverity)
+                .invoke(severity);
 
-        return HttpResponses.ok(incidents);
+            return HttpResponses.ok(incidents);
+        } catch (Exception e) {
+            logger.error("Error fetching incidents with severity: {}", severity, e);
+            return HttpResponses.ok(List.of());
+        }
     }
 
     /**
@@ -100,27 +129,75 @@ public class IncidentDashboardEndpoint {
     public HttpResponse getCriticalIncidents() {
         logger.info("Fetching critical incidents");
 
-        var incidents = componentClient
-            .forView()
-            .stream(IncidentMetricsView::getCriticalOrEscalationIncidents)
-            .source();
+        try {
+            var incidents = componentClient
+                .forKeyValueEntity("global")
+                .method(IncidentRegistry::getCriticalIncidents)
+                .invoke();
 
-        return HttpResponses.ok(incidents);
+            return HttpResponses.ok(incidents);
+        } catch (Exception e) {
+            logger.error("Error fetching critical incidents", e);
+            return HttpResponses.ok(List.of());
+        }
     }
 
     /**
      * Get dashboard statistics.
-     * Note: For now, use /dashboard/incidents to get all incidents and calculate stats client-side.
-     * TODO: Implement aggregation query in view for better performance.
+     * Queries all incidents and calculates aggregate statistics.
      */
     @Get("/stats")
     public HttpResponse getStats() {
         logger.info("Fetching dashboard statistics");
 
-        // Return placeholder stats - clients should use /dashboard/incidents for now
-        var stats = new DashboardStats(0, 0, 0, 0, 0, 0.0);
+        try {
+            // Get all incidents from the registry
+            var incidents = componentClient
+                .forKeyValueEntity("global")
+                .method(IncidentRegistry::getAllIncidents)
+                .invoke();
 
-        return HttpResponses.ok(stats);
+            logger.info("Calculating stats from {} incidents", incidents.size());
+
+            long totalIncidents = incidents.size();
+            long activeIncidents = incidents.stream().filter(i -> i.isActive()).count();
+            long p1Count = incidents.stream()
+                .filter(i -> "P1".equalsIgnoreCase(i.severity()) && i.isActive())
+                .count();
+            long p2Count = incidents.stream()
+                .filter(i -> "P2".equalsIgnoreCase(i.severity()) && i.isActive())
+                .count();
+            long escalationCount = incidents.stream()
+                .filter(i -> i.requiresEscalation() && i.isActive())
+                .count();
+
+            double averageProgress = incidents.isEmpty() ? 0.0 :
+                incidents.stream()
+                    .filter(i -> i.isActive())
+                    .mapToInt(i -> i.stepProgress())
+                    .average()
+                    .orElse(0.0);
+
+            var stats = new DashboardStats(
+                totalIncidents,
+                activeIncidents,
+                p1Count,
+                p2Count,
+                escalationCount,
+                averageProgress
+            );
+
+            logger.info("Stats calculated: total={}, active={}, P1={}, P2={}, escalations={}, avgProgress={}",
+                totalIncidents, activeIncidents, p1Count, p2Count, escalationCount, averageProgress);
+
+            return HttpResponses.ok(stats);
+
+        } catch (Exception e) {
+            logger.error("Error calculating dashboard stats", e);
+            // Return zeros on error rather than failing
+            var stats = new DashboardStats(0, 0, 0, 0, 0, 0.0);
+            return HttpResponses.ok(stats);
+        }
     }
 
     public record DashboardStats(

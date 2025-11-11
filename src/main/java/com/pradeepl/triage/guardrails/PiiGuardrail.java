@@ -69,44 +69,77 @@ public class PiiGuardrail implements TextGuardrail {
             return Result.OK;
         }
 
+        // Get context about which agent/component is being evaluated
+        String agentName = context.name();
+
         if (EMAIL_PATTERN.matcher(text).find()) {
-            logger.error("🚨 PII DETECTED: email address in text");
-            return new Result(false, "Email address detected in text");
+            // KnowledgeBaseAgent uses MCP tools that may return PII
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ?
+                " (likely from MCP tool/resource - KnowledgeBaseAgent uses MCP)" : "";
+
+            logger.error("🚨 PII DETECTED: email address from agent '{}'{}",
+                        agentName, sourceInfo);
+            return new Result(false, String.format(
+                "Email address detected from agent '%s'%s. " +
+                "Guardrails blocked PII from being exposed.",
+                agentName, sourceInfo));
         }
 
         if (PHONE_PATTERN.matcher(text).find()) {
-            logger.warn("🚨 PII detected: phone number");
-            return new Result(false, "Phone number detected in text");
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ? " (likely from MCP)" : "";
+            logger.warn("🚨 PII DETECTED: phone number from agent '{}'{}",
+                       agentName, sourceInfo);
+            return new Result(false, String.format("Phone number detected from agent '%s'%s", agentName, sourceInfo));
         }
 
         if (CREDIT_CARD_PATTERN.matcher(text).find()) {
-            logger.warn("🚨 PII detected: credit card number");
-            return new Result(false, "Credit card number detected in text");
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ? " (likely from MCP)" : "";
+            logger.warn("🚨 PII DETECTED: credit card number from agent '{}'{}",
+                       agentName, sourceInfo);
+            return new Result(false, String.format("Credit card number detected from agent '%s'%s", agentName, sourceInfo));
         }
 
         if (SSN_PATTERN.matcher(text).find()) {
-            logger.warn("🚨 PII detected: SSN");
-            return new Result(false, "Social Security Number detected in text");
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ? " (likely from MCP)" : "";
+            logger.warn("🚨 PII DETECTED: SSN from agent '{}'{}",
+                       agentName, sourceInfo);
+            return new Result(false, String.format("Social Security Number detected from agent '%s'%s", agentName, sourceInfo));
         }
 
         if (IPV4_PATTERN.matcher(text).find()) {
-            logger.warn("🚨 PII detected: IPv4 address");
-            return new Result(false, "IP address detected in text");
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ? " (likely from MCP)" : "";
+            logger.warn("🚨 PII DETECTED: IPv4 address from agent '{}'{}",
+                       agentName, sourceInfo);
+            return new Result(false, String.format("IP address detected from agent '%s'%s", agentName, sourceInfo));
         }
 
         if (IPV6_PATTERN.matcher(text).find()) {
-            logger.warn("🚨 PII detected: IPv6 address");
-            return new Result(false, "IPv6 address detected in text");
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ? " (likely from MCP)" : "";
+            logger.warn("🚨 PII DETECTED: IPv6 address from agent '{}'{}",
+                       agentName, sourceInfo);
+            return new Result(false, String.format("IPv6 address detected from agent '%s'%s", agentName, sourceInfo));
         }
 
         if (PASSPORT_PATTERN.matcher(text).find()) {
-            logger.warn("🚨 PII detected: passport number");
-            return new Result(false, "Passport number detected in text");
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ? " (likely from MCP)" : "";
+            logger.warn("🚨 PII DETECTED: passport number from agent '{}'{}",
+                       agentName, sourceInfo);
+            return new Result(false, String.format("Passport number detected from agent '%s'%s", agentName, sourceInfo));
         }
 
         if (DRIVERS_LICENSE_PATTERN.matcher(text).find()) {
-            logger.warn("🚨 PII detected: driver's license");
-            return new Result(false, "Driver's license number detected in text");
+            boolean isMcpAgent = "knowledge-base-agent".equals(agentName);
+            String sourceInfo = isMcpAgent ? " (likely from MCP)" : "";
+            logger.warn("🚨 PII DETECTED: driver's license from agent '{}'{}",
+                       agentName, sourceInfo);
+            return new Result(false, String.format("Driver's license number detected from agent '%s'%s", agentName, sourceInfo));
         }
 
         return Result.OK;
