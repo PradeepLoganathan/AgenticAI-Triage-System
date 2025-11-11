@@ -3,7 +3,7 @@ package com.pradeepl.triage.application.agents;
 import akka.javasdk.agent.Agent;
 import akka.javasdk.agent.ModelProvider;
 import akka.javasdk.agent.MemoryProvider;
-import akka.javasdk.agent.RemoteMcpTools;
+import akka.javasdk.agent.RemoteMcpResources;
 import akka.javasdk.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +50,9 @@ public class KnowledgeBaseAgent extends Agent {
                                 .withMaxTokens(2000)
                 )
                 .memory(MemoryProvider.limitedWindow())
-                .mcpTools(
-                        RemoteMcpTools.fromService("knowledge-base-mcp-server")
+                .mcpResources(
+                        RemoteMcpResources.fromService("knowledge-base-mcp-server")
+                                .withAllowedResourceUriPatterns("kb://runbooks/*")
                 )
                 .systemMessage(SYSTEM)
                 .userMessage("Query: " + (query == null ? "" : query))
